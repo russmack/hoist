@@ -10,11 +10,23 @@ import (
 	"path"
 )
 
+type Image struct {
+	Id      string `json:"Id"`
+	Created int    `json:"Created"`
+	//Labels   `json:"Labels"`
+	ParentId string `json:"ParentId"`
+	//RepoDigests []string `json:"RepoDigests"`
+	RepoTags    []string `json:"RepoTags"`
+	Size        int      `json:"Size"`
+	VirtualSize int      `json:"VirtualSize"`
+}
+
 const (
 	rootPath = "../www/"
 )
 
 func main() {
+	initConfig()
 	router := httprouter.New()
 	router.HandlerFunc("GET", "/index.html", indexHandler)
 	router.HandlerFunc("GET", "/images.html", imagesHandler)
@@ -36,7 +48,8 @@ func containersHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, path.Join(rootPath, "containers.html"))
 }
 func imagesEndpointsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	fmt.Fprintf(w, "This is the image list response data: %s\n", ps.ByName("endpoint"))
+	//fmt.Fprintf(w, "This is the image list response data: %s\n", ps.ByName("endpoint"))
+	fmt.Fprintf(w, listImages(cfg))
 }
 func elseHandler(w http.ResponseWriter, r *http.Request) {
 	p := path.Join(rootPath, r.URL.Path)
@@ -44,22 +57,54 @@ func elseHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, p)
 }
 
-func query() {
-	certPath := os.Getenv("DOCKER_CERT_PATH")
+func listImages(cfg Config) string {
+	uri := fmt.Sprintf("%s/images/json", cfg.Addr)
+	return sendRequest(uri)
+}
+
+func listContainers() string {
+	//uri := fmt.Sprintf("%s/containers/json", addr)
+	return ""
+}
+
+func ping() string {
+	//uri := fmt.Sprintf("%s/_ping", addr)
+	return ""
+}
+
+type Config struct {
+	CertPath string
+	CaCert   string
+	SslCert  []byte
+	SslKey   []byte
+	Addr     string
+}
+
+var (
+	cfg Config
+)
+
+func initConfig() {
+	//cfg = new(Config)
+	cfg.CertPath = os.Getenv("DOCKER_CERT_PATH")
 
 	//caCert, _ := getCaCert(certPath + "/ca.pem")
-	sslCert, _ := lib.GetSslCert(certPath + "/cert.pem")
-	sslKey, _ := lib.GetSslKey(certPath + "/key.pem")
-	tlsConfig, err := lib.GetTLSConfig(nil, sslCert, sslKey)
-	if err != nil {
-		log.Fatal("Error getting TLS config.", err)
-	}
+	cfg.SslCert, _ = lib.GetSslCert(cfg.CertPath + "/cert.pem")
+	cfg.SslKey, _ = lib.GetSslKey(cfg.CertPath + "/key.pem")
 	//fd, err := net.Dial("unix", "/var/run/docker.sock")
 	//fd, err := net.Dial("tcp", "192.168.59.103:2375")
+	cfg.Addr = "https://192.168.59.103:2376"
+}
+
+func sendRequest(uri string) string {
 	fmt.Println("Dialing...")
 
 	// START REQUEST
 
+	tlsConfig, err := lib.GetTLSConfig(nil, cfg.SslCert, cfg.SslKey)
+	if err != nil {
+		log.Fatal("Error getting TLS config.", err)
+	}
 	tlsConfig.InsecureSkipVerify = true
 
 	transport := http.Transport{
@@ -70,10 +115,6 @@ func query() {
 	client := http.Client{
 		Transport: &transport,
 	}
-	addr := "https://192.168.59.103:2376"
-	//uri := fmt.Sprintf("%s/_ping", addr)
-	//uri := fmt.Sprintf("%s/containers/json", addr)
-	uri := fmt.Sprintf("%s/images/json", addr)
 	resp, err := client.Get(uri)
 	if err != nil {
 		//return 0, err
@@ -82,8 +123,8 @@ func query() {
 		defer resp.Body.Close()
 		status = resp.StatusCode
 	}
-	fmt.Println("Status:", status)
-	fmt.Println("Resp:")
+	//fmt.Println("Status:", status)
+	//fmt.Println("Resp:")
 	body := ""
 	if status == 200 {
 		bodyBuf, _ := lib.ReadHttpResponseBody(resp)
@@ -91,10 +132,11 @@ func query() {
 	} else {
 		body = "No body in http response."
 	}
-	fmt.Println(body)
+	//fmt.Println(body)
+	return body
 	// END REQUEST
 
-	fmt.Println("Starting read routine...")
+	//fmt.Println("Starting read routine...")
 	//go readConn(fd)
 
 	//done := make(chan bool)

@@ -62,15 +62,25 @@ $(document)
             cache: false,
             // faking api request
             apiSettings: {
-                loadingDuration : 3000,
-                mockResponse    : function(settings) {
+                loadingDuration : 3000
+                , 
+                onLoad: function(x, y, response) {
+                    console.log('ok');
                     var response = {
-                        list : 'AJAX Tab One',
-                        inspect : 'AJAX Tab Two',
-                        search : 'AJAX Tab Three'
-                    };
-                    return response[settings.urlData.tab];
+                        results : []
+                    }
+                    ;
+                    return response;
                 }
+            // ,
+            //     mockResponse    : function(settings) {
+            //         var response = {
+            //             list : 'AJAX Tab One',
+            //             inspect : 'AJAX Tab Two',
+            //             search : 'AJAX Tab Three'
+            //         };
+            //         return response[settings.urlData.tab];
+            //     }
             },
             context : 'parent',
             auto    : true,
@@ -78,7 +88,47 @@ $(document)
         })
     ;
     
+    $.fn.api.settings.successTest = function(response) {
+        // if(response && response.success) {
+        //     return response.success;
+        // }
+        // return false;
+        return true;
+    };
 
+// Function to create a table as a child of el.
+// // data must be an array of arrays (outer array is rows).
+    function tableCreate(el, data)
+    {
+        var tbl  = document.createElement("table");
+        tbl.style.width  = "70%";
+
+        for (var i = 0; i < data.length; ++i)
+        {
+            var tr = tbl.insertRow();
+            for(var j = 0; j < data[i].length; ++j)
+            {
+                var td = tr.insertCell();
+                td.appendChild(document.createTextNode(data[i][j].toString()));
+            }
+        }
+        el.appendChild(tbl);
+    }
+
+    /*
+    $.post("/whatever", { somedata: "test" }, null, "json")
+        .done(function(data) {
+            rows = [];
+            for (var i = 0; i < data.Results.length; ++i)
+        {
+            cells = [];
+            cells.push(data.Results[i].A);
+            cells.push(data.Results[i].B);
+            rows.push(cells);
+        }
+        tableCreate($("#results")[0], rows);
+        });
+    */
 
     /*
     $('.infinite.example .demo.segment')
