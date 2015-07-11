@@ -2,7 +2,7 @@
 
 Lightweight container orchestration
 
-![Progress](http://progressed.io/bar/2?title=pre-alpha)
+![Progress](http://progressed.io/bar/1?title=pre-alpha)
 [![Build Status](https://travis-ci.org/russmack/hoist.svg?branch=master)](https://travis-ci.org/russmack/hoist)
 
 ---
@@ -12,8 +12,7 @@ Lightweight container orchestration
 ## Usage
 ```
 cd cmd
-go build
-./cmd
+go run main.go
 ```
 
 ## License
