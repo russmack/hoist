@@ -51,99 +51,65 @@ $(document)
       .transition('scale in', 1000)
     ;
 
-    /*
-    $('.menu .item')
-      .tab()
-    ;
-    */
-    
-    $('.menu .item')
-        .tab({
-            cache: false,
-            // faking api request
-            apiSettings: {
-                loadingDuration : 3000
-                , 
-                onLoad: function(x, y, response) {
-                    console.log('ok');
-                    var response = {
-                        results : []
-                    }
-                    ;
-                    return response;
-                }
-            // ,
-            //     mockResponse    : function(settings) {
-            //         var response = {
-            //             list : 'AJAX Tab One',
-            //             inspect : 'AJAX Tab Two',
-            //             search : 'AJAX Tab Three'
-            //         };
-            //         return response[settings.urlData.tab];
-            //     }
-            },
-            context : 'parent',
-            auto    : true,
-            path    : '/images/'
-        })
-    ;
-    
-    $.fn.api.settings.successTest = function(response) {
-        // if(response && response.success) {
-        //     return response.success;
-        // }
-        // return false;
-        return true;
-    };
-
-// Function to create a table as a child of el.
-// // data must be an array of arrays (outer array is rows).
+    // Function to create a table.
     function tableCreate(el, data)
     {
-        var tbl  = document.createElement("table");
-        tbl.style.width  = "70%";
+        //var tbl  = document.createElement("table");
+        var tbl = document.getElementById('table-list');
 
-        for (var i = 0; i < data.length; ++i)
+        for (var i = 0; i < data.length; i++)
         {
             var tr = tbl.insertRow();
-            for(var j = 0; j < data[i].length; ++j)
-            {
-                var td = tr.insertCell();
-                td.appendChild(document.createTextNode(data[i][j].toString()));
+            var td = tr.insertCell();
+            td.appendChild(document.createTextNode(data[i].Id.substring(0, 11)));
+            var td = tr.insertCell();
+            td.appendChild(document.createTextNode(data[i].RepoTags));
+            var td = tr.insertCell();
+            var dt = convertUnixTime(data[i].Created);
+            td.appendChild(document.createTextNode(dt));
+            var td = tr.insertCell();
+            td.appendChild(document.createTextNode(data[i].VirtualSize));
+            var td = tr.insertCell();
+            td.appendChild(document.createTextNode(data[i].ParentId.substring(0, 11)));
+            var td = tr.insertCell();
+            td.appendChild(document.createTextNode(data[i].Size));
+            var td = tr.insertCell();
+            var text = '';
+            if (data[i].Labels !== 'undefined' && data[i].Labels !== null)  {
+                for (var j = 0; j < data[i].Labels.length; j++)
+                {
+                    text += data[i].Labels[j] + '<br />';
+                }
             }
+            td.appendChild(document.createTextNode(text));
+            var td = tr.insertCell();
+            td.appendChild(document.createTextNode(data[i].RepoDigests));
         }
-        el.appendChild(tbl);
+        //el.appendChild(tbl);
     }
 
-    /*
-    $.post("/whatever", { somedata: "test" }, null, "json")
-        .done(function(data) {
-            rows = [];
-            for (var i = 0; i < data.Results.length; ++i)
-        {
-            cells = [];
-            cells.push(data.Results[i].A);
-            cells.push(data.Results[i].B);
-            rows.push(cells);
-        }
-        tableCreate($("#results")[0], rows);
-        });
-    */
+    $('#menu-tabs .item')
+        .tab('change tab', 'tab-list');
 
-    /*
-    $('.infinite.example .demo.segment')
-      .visibility({
-        once: false,
-              // update size when new content loads
-              //     observeChanges: true,
-              //         // load content on bottom edge visible
-              //             onBottomVisible: function() {
-              //                   // loads a max of 5 times
-              //                         window.loadFakeContent();
-              //                             }
-      })
-      ;
-      */
+    $.getJSON("/images/list")
+        .done(function(data) {
+            tableCreate($("#results")[0], data);
+        });
+
+    function convertUnixTime(unix_timestamp) {
+       var date = new Date(unix_timestamp*1000);
+      // hours part from the timestamp
+      var hours = date.getHours();
+      // // minutes part from the timestamp
+      var minutes = "0" + date.getMinutes();
+      // // seconds part from the timestamp
+      var seconds = "0" + date.getSeconds();
+      
+      // // will display time in 10:30:23 format
+      var formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+      //return formattedTime;
+      return date;
+    }
 
     setInterval(changeSides, 3000);
 
