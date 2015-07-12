@@ -114,7 +114,8 @@ $(document)
 
             var historyBtn = $('<button />').attr({ class:'ui small compact basic icon button' });
             $(historyBtn).click( function() {
-                $('#menu-tabs #menu-tabs-history').click();
+                //$('#menu-tabs #menu-tab-history').click();
+                $('#tab-history').modal('show');
                 // Get inspect data.
                 $.getJSON('/images/history/' + val, function() {
                         //console.log('requested');
@@ -135,7 +136,8 @@ $(document)
             ;
 
             $(link).click( function() {
-                    $('#menu-tabs #menu-tabs-inspect').click();
+                    //$('#menu-tabs #menu-tabs-inspect').click();
+                    $('#tab-inspect').modal('show');
                     // Get inspect data.
                     $.getJSON('/images/inspect/' + val, function() {
                             //console.log('requested');
