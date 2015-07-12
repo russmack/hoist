@@ -32,6 +32,7 @@ func main() {
 	router.HandlerFunc("GET", "/images.html", imagesHandler)
 	router.HandlerFunc("GET", "/containers.html", containersHandler)
 	router.GET("/images/:endpoint", imagesEndpointsHandler)
+	router.GET("/images/:endpoint/:id", imagesEndpointsHandler)
 	router.HandlerFunc("GET", "/", indexHandler)
 	router.ServeFiles("/static/*filepath", http.Dir(rootPath))
 
@@ -49,7 +50,16 @@ func containersHandler(w http.ResponseWriter, r *http.Request) {
 }
 func imagesEndpointsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	//fmt.Fprintf(w, "This is the image list response data: %s\n", ps.ByName("endpoint"))
-	fmt.Fprintf(w, listImages(cfg))
+	switch ps.ByName("endpoint") {
+	case "list":
+		fmt.Fprintf(w, listImages(cfg))
+	case "inspect":
+		//fmt.Printf("Received request for inspect: %s\n", ps.ByName("id"))
+		//fmt.Fprintf(w, "This is the inspect endpoint for image: %s", ps.ByName("id"))
+		fmt.Fprintf(w, inspectImage(cfg, ps.ByName("id")))
+	case "history":
+		fmt.Fprintf(w, historyImage(cfg, ps.ByName("id")))
+	}
 }
 func elseHandler(w http.ResponseWriter, r *http.Request) {
 	p := path.Join(rootPath, r.URL.Path)
@@ -59,6 +69,16 @@ func elseHandler(w http.ResponseWriter, r *http.Request) {
 
 func listImages(cfg Config) string {
 	uri := fmt.Sprintf("%s/images/json", cfg.Addr)
+	return sendRequest(uri)
+}
+
+func inspectImage(cfg Config, imageId string) string {
+	uri := fmt.Sprintf("%s/images/%s/json", cfg.Addr, imageId)
+	return sendRequest(uri)
+}
+
+func historyImage(cfg Config, imageId string) string {
+	uri := fmt.Sprintf("%s/images/%s/history", cfg.Addr, imageId)
 	return sendRequest(uri)
 }
 
