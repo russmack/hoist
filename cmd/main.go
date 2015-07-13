@@ -33,6 +33,8 @@ func main() {
 	router.HandlerFunc("GET", "/containers.html", containersHandler)
 	router.GET("/images/:endpoint", imagesEndpointsHandler)
 	router.GET("/images/:endpoint/:id", imagesEndpointsHandler)
+	router.GET("/containers/:endpoint", containersEndpointsHandler)
+	router.GET("/containers/:endpoint/:id", containersEndpointsHandler)
 	router.HandlerFunc("GET", "/", indexHandler)
 	router.ServeFiles("/static/*filepath", http.Dir(rootPath))
 
@@ -49,16 +51,25 @@ func containersHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, path.Join(rootPath, "containers.html"))
 }
 func imagesEndpointsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	//fmt.Fprintf(w, "This is the image list response data: %s\n", ps.ByName("endpoint"))
 	switch ps.ByName("endpoint") {
 	case "list":
 		fmt.Fprintf(w, listImages(cfg))
 	case "inspect":
-		//fmt.Printf("Received request for inspect: %s\n", ps.ByName("id"))
-		//fmt.Fprintf(w, "This is the inspect endpoint for image: %s", ps.ByName("id"))
 		fmt.Fprintf(w, inspectImage(cfg, ps.ByName("id")))
 	case "history":
 		fmt.Fprintf(w, historyImage(cfg, ps.ByName("id")))
+	}
+}
+func containersEndpointsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	switch ps.ByName("endpoint") {
+	case "list":
+		fmt.Fprintf(w, listContainers(cfg))
+	case "inspect":
+		fmt.Fprintf(w, inspectContainer(cfg, ps.ByName("id")))
+	case "log":
+		fmt.Fprintf(w, logContainer(cfg, ps.ByName("id")))
+	case "top":
+		fmt.Fprintf(w, topContainer(cfg, ps.ByName("id")))
 	}
 }
 func elseHandler(w http.ResponseWriter, r *http.Request) {
@@ -82,9 +93,24 @@ func historyImage(cfg Config, imageId string) string {
 	return sendRequest(uri)
 }
 
-func listContainers() string {
-	//uri := fmt.Sprintf("%s/containers/json", addr)
-	return ""
+func listContainers(cfg Config) string {
+	uri := fmt.Sprintf("%s/containers/json", cfg.Addr)
+	return sendRequest(uri)
+}
+
+func inspectContainer(cfg Config, containerId string) string {
+	uri := fmt.Sprintf("%s/containers/%s/json", cfg.Addr, containerId)
+	return sendRequest(uri)
+}
+
+func logContainer(cfg Config, containerId string) string {
+	uri := fmt.Sprintf("%s/containers/%s/log", cfg.Addr, containerId)
+	return sendRequest(uri)
+}
+
+func topContainer(cfg Config, containerId string) string {
+	uri := fmt.Sprintf("%s/containers/%s/top", cfg.Addr, containerId)
+	return sendRequest(uri)
 }
 
 func ping() string {
