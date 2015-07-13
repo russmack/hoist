@@ -15,7 +15,7 @@ cd cmd
 go run main.go
 ```
 
-## Somewhat Implemented
+### Somewhat Implemented
 
 #### Images
 - [X] List
@@ -26,7 +26,12 @@ go run main.go
 - [X] List
 - [X] Inspect
 - [X] Top
+- [X] Changes
 
+#### Monitor
+- [X] Info
+- [X] Version
+- [X] Ping
 
 ## License
 BSD 3-Clause: [LICENSE.txt](LICENSE.txt)

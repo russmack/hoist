@@ -9,12 +9,12 @@
   <!-- Site Properities -->
   <title>Hoist</title>
 
-  <link rel="stylesheet" type="text/css" href="../semantic-ui/dist/semantic.css">
-  <link rel="stylesheet" type="text/css" href="index.css">
+  <link rel="stylesheet" type="text/css" href="static/semantic-ui/dist/semantic.css">
+  <link rel="stylesheet" type="text/css" href="static/index.css">
 
   <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.js"></script>
-  <script src="../semantic-ui/dist/semantic.js"></script>
-  <script src="index.js"></script>
+  <script src="static/semantic-ui/dist/semantic.js"></script>
+  <script src="static/monitor.js"></script>
 
 </head>
 <body id="home">
@@ -22,14 +22,14 @@
     <div class="ui page grid">
       <div class="column">
         <div class="ui inverted blue menu">
-          <div class="header item">Hoist</div>
+            <div class="header item"><a href="index.html">Hoist</a></div>
           <div class="right menu">
             <div class="ui mobile dropdown link item">
               Menu
               <i class="dropdown icon"></i>
               <div class="menu">
-                <a class="item">Images</a>
-                <a class="item">Containers</a>
+                <a class="item" href="images.html">Images</a>
+                <a class="item" href="containers.html">Containers</a>
                 <a class="item">Community</a>
               </div>
             </div>
@@ -37,63 +37,94 @@
               Manage
               <i class="dropdown icon"></i>
               <div class="menu">
-                <a class="item">Images</a>
-                <a class="item">Containers</a>
+                <a class="item" href="images.html">Images</a>
+                <a class="item" href="containers.html">Containers</a>
                 <a class="item">SSH</a>
               </div>
             </div>
-            <a class="item">Monitor</a>
+            <a class="item" href="monitor.html">Monitor</a>
             <a class="item">Community</a>
           </div>
         </div>
       </div>
     </div>
   </div>
-  <div class="ui vertical feature segment">
-    <div class="ui centered page grid">
-      <div class="fourteen wide column">
-        <div class="ui three column center aligned stackable divided grid">
-          <div class="column">
-            <div class="ui icon header">
-              <i class="cube icon"></i>
-              Images
-            </div>
-            <p>Get images, list images, update images, clean images, ...</p>
-            <p>
-              <a class="ui button" href="#">
-                Manage images
-              </a>
-            </p>
-          </div>
-          <div class="column">
-            <div class="ui icon header">
-              <i class="cubes icon"></i>
-              Containers
-            </div>
-            <p>Build containers, start containers, list containers, edit containers, clean containers, ...</p>
-            <p>
-              <a class="ui blue right labeled icon button" href="#">
-                Manage containers
-                <i class="right chevron icon"></i>
-              </a>
-            </p>
-          </div>
-          <div class="column">
-            <div class="ui icon header">
-              <i class="area chart icon"></i>
-              Monitor
-            </div>
-            <p>Monitor your platform's events.</p>
-            <p>
-              <a class="ui button" href="#">
-                View
-              </a>
-            </p>
-          </div>
-        </div>
+
+
+
+  <div class="ui secondary pointing menu" id="menu-tabs">
+      <a class="item" data-tab="tab-info" id="menu-tabs-info">
+          Info
+      </a>
+      <a class="item" data-tab="tab-dockerversion" id="menu-tabs-dockerversion">
+          Docker Version
+      </a>
+      <a class="item" data-tab="tab-ping" id="menu-tabs-ping">
+          Ping
+      </a>
+      <!--
+      <div class="right menu">
+          <a class="ui item">
+              Logout
+          </a>
       </div>
-    </div>
+      -->
   </div>
+
+  <!--
+  <div class="ui tab segment active" data-tab="tab-infox" id="tab-infox">
+      <div id="results">
+          <table class="ui celled table" id="table-list">
+              <thead>
+                  <tr>
+                      <th>Id</th>
+                      <th>Image</th>
+                      <th>Command</th>
+                      <th>Created</th>
+                      <th>Status</th>
+                      <th>Ports</th>
+                      <th>Size Rw</th>
+                      <th>Size RootFs</th>
+                  </tr>
+              </thead>
+              <tbody>
+              </tbody>
+          </table>
+      </div>
+  </div>
+  -->
+  <div class="ui tab segment active" data-tab="tab-info" id="tab-info">
+      <div id="results"></div>
+  </div>
+  <div class="ui tab segment" data-tab="tab-dockerversion" id="tab-dockerversion">
+      <div id="results"></div>
+  </div>
+  <div class="ui tab segment" data-tab="tab-ping" id="tab-ping">
+      <div id="results"></div>
+  </div>
+  <!--
+  <div class="ui basic modal" data-tab="tab-start" id="tab-start">
+      <div id="results"></div>
+  </div>
+  <div class="ui basic modal" data-tab="tab-stop" id="tab-stop">
+      <div id="results"></div>
+  </div>
+  -->
+  <!--
+  <div class="ui basic modal" data-tab="tab-stats" id="tab-stats">
+      <div id="results"></div>
+  </div>
+  -->
+  <!--
+  <div class="ui basic modal" data-tab="tab-logs" id="tab-logs">
+      <div id="results"></div>
+  </div>
+  -->
+  <div class="ui tab segment" data-tab="search">
+      <p>This is search</p>
+  </div>
+
+
 
   <div class="ui inverted footer vertical segment">
     <div class="ui stackable center aligned page grid">

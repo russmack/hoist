@@ -32,10 +32,12 @@ func main() {
 	router.HandlerFunc("GET", "/index.html", indexHandler)
 	router.HandlerFunc("GET", "/images.html", imagesHandler)
 	router.HandlerFunc("GET", "/containers.html", containersHandler)
+	router.HandlerFunc("GET", "/monitor.html", monitorHandler)
 	router.GET("/images/:endpoint", imagesEndpointsHandler)
 	router.GET("/images/:endpoint/:id", imagesEndpointsHandler)
 	router.GET("/containers/:endpoint", containersEndpointsHandler)
 	router.GET("/containers/:endpoint/:id", containersEndpointsHandler)
+	router.GET("/monitor/:endpoint", monitorEndpointsHandler)
 	router.HandlerFunc("GET", "/", indexHandler)
 	router.ServeFiles("/static/*filepath", http.Dir(rootPath))
 
@@ -51,34 +53,47 @@ func imagesHandler(w http.ResponseWriter, r *http.Request) {
 func containersHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, path.Join(rootPath, "containers.html"))
 }
+func monitorHandler(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, path.Join(rootPath, "monitor.html"))
+}
 func imagesEndpointsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	switch ps.ByName("endpoint") {
 	case "list":
-		fmt.Fprintf(w, listImages(cfg))
+		fmt.Fprintf(w, imageList(cfg))
 	case "inspect":
-		fmt.Fprintf(w, inspectImage(cfg, ps.ByName("id")))
+		fmt.Fprintf(w, imageInspect(cfg, ps.ByName("id")))
 	case "history":
-		fmt.Fprintf(w, historyImage(cfg, ps.ByName("id")))
+		fmt.Fprintf(w, imageHistory(cfg, ps.ByName("id")))
 	}
 }
 func containersEndpointsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	switch ps.ByName("endpoint") {
 	case "list":
-		fmt.Fprintf(w, listContainers(cfg))
+		fmt.Fprintf(w, containerList(cfg))
 	case "inspect":
-		fmt.Fprintf(w, inspectContainer(cfg, ps.ByName("id")))
+		fmt.Fprintf(w, containerInspect(cfg, ps.ByName("id")))
 	case "log":
-		fmt.Fprintf(w, logContainer(cfg, ps.ByName("id")))
+		fmt.Fprintf(w, containerLog(cfg, ps.ByName("id")))
 	case "top":
-		fmt.Fprintf(w, topContainer(cfg, ps.ByName("id")))
+		fmt.Fprintf(w, containerTop(cfg, ps.ByName("id")))
 	case "stats":
-		fmt.Fprintf(w, statsContainer(cfg, ps.ByName("id")))
+		fmt.Fprintf(w, containerStats(cfg, ps.ByName("id")))
 	case "changes":
-		fmt.Fprintf(w, changesContainer(cfg, ps.ByName("id")))
+		fmt.Fprintf(w, containerChanges(cfg, ps.ByName("id")))
 	case "start":
-		fmt.Fprintf(w, startContainer(cfg, ps.ByName("id")))
+		fmt.Fprintf(w, containerStart(cfg, ps.ByName("id")))
 	case "stop":
-		fmt.Fprintf(w, stopContainer(cfg, ps.ByName("id")))
+		fmt.Fprintf(w, containerStop(cfg, ps.ByName("id")))
+	}
+}
+func monitorEndpointsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	switch ps.ByName("endpoint") {
+	case "info":
+		fmt.Fprintf(w, monitorInfo(cfg))
+	case "version":
+		fmt.Fprintf(w, monitorVersion(cfg))
+	case "ping":
+		fmt.Fprintf(w, monitorPing(cfg))
 	}
 }
 func elseHandler(w http.ResponseWriter, r *http.Request) {
@@ -87,42 +102,42 @@ func elseHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, p)
 }
 
-func listImages(cfg Config) string {
+func imageList(cfg Config) string {
 	uri := fmt.Sprintf("%s/images/json", cfg.Addr)
 	return sendRequest(uri)
 }
 
-func inspectImage(cfg Config, imageId string) string {
+func imageInspect(cfg Config, imageId string) string {
 	uri := fmt.Sprintf("%s/images/%s/json", cfg.Addr, imageId)
 	return sendRequest(uri)
 }
 
-func historyImage(cfg Config, imageId string) string {
+func imageHistory(cfg Config, imageId string) string {
 	uri := fmt.Sprintf("%s/images/%s/history", cfg.Addr, imageId)
 	return sendRequest(uri)
 }
 
-func listContainers(cfg Config) string {
+func containerList(cfg Config) string {
 	uri := fmt.Sprintf("%s/containers/json?all=true", cfg.Addr)
 	return sendRequest(uri)
 }
 
-func inspectContainer(cfg Config, containerId string) string {
+func containerInspect(cfg Config, containerId string) string {
 	uri := fmt.Sprintf("%s/containers/%s/json", cfg.Addr, containerId)
 	return sendRequest(uri)
 }
 
-func logContainer(cfg Config, containerId string) string {
+func containerLog(cfg Config, containerId string) string {
 	uri := fmt.Sprintf("%s/containers/%s/log", cfg.Addr, containerId)
 	return sendRequest(uri)
 }
 
-func topContainer(cfg Config, containerId string) string {
+func containerTop(cfg Config, containerId string) string {
 	uri := fmt.Sprintf("%s/containers/%s/top", cfg.Addr, containerId)
 	return sendRequest(uri)
 }
 
-func statsContainer(cfg Config, containerId string) string {
+func containerStats(cfg Config, containerId string) string {
 	uri := fmt.Sprintf("%s/containers/%s/stats", cfg.Addr, containerId)
 	fmt.Println("Req stats:", uri)
 	s := sendRequest(uri)
@@ -130,24 +145,40 @@ func statsContainer(cfg Config, containerId string) string {
 	return s
 }
 
-func changesContainer(cfg Config, containerId string) string {
+func containerChanges(cfg Config, containerId string) string {
 	uri := fmt.Sprintf("%s/containers/%s/changes", cfg.Addr, containerId)
 	return sendRequest(uri)
 }
 
-func startContainer(cfg Config, containerId string) string {
+func containerStart(cfg Config, containerId string) string {
 	uri := fmt.Sprintf("%s/containers/%s/start", cfg.Addr, containerId)
 	return sendRequest(uri)
 }
 
-func stopContainer(cfg Config, containerId string) string {
+func containerStop(cfg Config, containerId string) string {
 	uri := fmt.Sprintf("%s/containers/%s/stop", cfg.Addr, containerId)
 	return sendRequest(uri)
 }
 
-func ping() string {
-	//uri := fmt.Sprintf("%s/_ping", addr)
-	return ""
+func monitorInfo(cfg Config) string {
+	uri := fmt.Sprintf("%s/info", cfg.Addr)
+	return sendRequest(uri)
+}
+func monitorVersion(cfg Config) string {
+	uri := fmt.Sprintf("%s/version", cfg.Addr)
+	return sendRequest(uri)
+}
+func monitorPing(cfg Config) string {
+	uri := fmt.Sprintf("%s/_ping", cfg.Addr)
+	body := sendRequest(uri)
+	bodyJson := ""
+	b, err := json.Marshal(body)
+	if err != nil {
+		bodyJson = "{ success: false, error: 'unknown' }"
+	} else {
+		bodyJson = string(b)
+	}
+	return bodyJson
 }
 
 type Config struct {
