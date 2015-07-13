@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/julienschmidt/httprouter"
 	lib "github.com/russmack/hoist/lib"
@@ -70,6 +71,14 @@ func containersEndpointsHandler(w http.ResponseWriter, r *http.Request, ps httpr
 		fmt.Fprintf(w, logContainer(cfg, ps.ByName("id")))
 	case "top":
 		fmt.Fprintf(w, topContainer(cfg, ps.ByName("id")))
+	case "stats":
+		fmt.Fprintf(w, statsContainer(cfg, ps.ByName("id")))
+	case "changes":
+		fmt.Fprintf(w, changesContainer(cfg, ps.ByName("id")))
+	case "start":
+		fmt.Fprintf(w, startContainer(cfg, ps.ByName("id")))
+	case "stop":
+		fmt.Fprintf(w, stopContainer(cfg, ps.ByName("id")))
 	}
 }
 func elseHandler(w http.ResponseWriter, r *http.Request) {
@@ -94,7 +103,7 @@ func historyImage(cfg Config, imageId string) string {
 }
 
 func listContainers(cfg Config) string {
-	uri := fmt.Sprintf("%s/containers/json", cfg.Addr)
+	uri := fmt.Sprintf("%s/containers/json?all=true", cfg.Addr)
 	return sendRequest(uri)
 }
 
@@ -110,6 +119,29 @@ func logContainer(cfg Config, containerId string) string {
 
 func topContainer(cfg Config, containerId string) string {
 	uri := fmt.Sprintf("%s/containers/%s/top", cfg.Addr, containerId)
+	return sendRequest(uri)
+}
+
+func statsContainer(cfg Config, containerId string) string {
+	uri := fmt.Sprintf("%s/containers/%s/stats", cfg.Addr, containerId)
+	fmt.Println("Req stats:", uri)
+	s := sendRequest(uri)
+	fmt.Println("Got stats:", s)
+	return s
+}
+
+func changesContainer(cfg Config, containerId string) string {
+	uri := fmt.Sprintf("%s/containers/%s/changes", cfg.Addr, containerId)
+	return sendRequest(uri)
+}
+
+func startContainer(cfg Config, containerId string) string {
+	uri := fmt.Sprintf("%s/containers/%s/start", cfg.Addr, containerId)
+	return sendRequest(uri)
+}
+
+func stopContainer(cfg Config, containerId string) string {
+	uri := fmt.Sprintf("%s/containers/%s/stop", cfg.Addr, containerId)
 	return sendRequest(uri)
 }
 
@@ -131,7 +163,6 @@ var (
 )
 
 func initConfig() {
-	//cfg = new(Config)
 	cfg.CertPath = os.Getenv("DOCKER_CERT_PATH")
 
 	//caCert, _ := getCaCert(certPath + "/ca.pem")
@@ -144,8 +175,6 @@ func initConfig() {
 
 func sendRequest(uri string) string {
 	fmt.Println("Dialing...")
-
-	// START REQUEST
 
 	tlsConfig, err := lib.GetTLSConfig(nil, cfg.SslCert, cfg.SslKey)
 	if err != nil {
@@ -163,28 +192,23 @@ func sendRequest(uri string) string {
 	}
 	resp, err := client.Get(uri)
 	if err != nil {
-		//return 0, err
 		log.Fatal("Error getting http resource.", err)
 	} else {
 		defer resp.Body.Close()
 		status = resp.StatusCode
 	}
-	//fmt.Println("Status:", status)
-	//fmt.Println("Resp:")
 	body := ""
 	if status == 200 {
 		bodyBuf, _ := lib.ReadHttpResponseBody(resp)
 		body = string(bodyBuf)
 	} else {
-		body = "No body in http response."
+		b, err := json.Marshal(resp)
+		if err != nil {
+			body = "{ success: false, error: 'unknown' }"
+		} else {
+			body = string(b)
+		}
 	}
-	//fmt.Println(body)
+	fmt.Println("Body:", body)
 	return body
-	// END REQUEST
-
-	//fmt.Println("Starting read routine...")
-	//go readConn(fd)
-
-	//done := make(chan bool)
-	//<-done
 }

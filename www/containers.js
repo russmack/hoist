@@ -54,8 +54,6 @@ $(document)
     // Function to create a table.
     function tableCreate(el, data)
     {
-        //var tbl  = document.createElement("table");
-        //var tbl = document.getElementById('table-list');
         var listBody = $('#table-list > tbody')[0];
 
         for (var i = 0; i < data.length; i++)
@@ -64,9 +62,6 @@ $(document)
             var td = tr.insertCell();
             var id = data[i].Id.substring(0, 11);
             var idLink = data[i].Id;
-            //var idLink = '<a href="images/inspect/' + data[i].Id  + '">' + id  + '</a>';
-            //var idLink = '<a onclick=""' + data[i].Id  + '">' + id  + '</a>';
-            //td.appendChild(document.createTextNode(idLink));
             td.innerHTML = idLink;
             var td = tr.insertCell();
             td.appendChild(document.createTextNode(data[i].Image));
@@ -103,16 +98,13 @@ $(document)
             link.appendChild(linkText);
             td.innerHTML = '';  // Clear cell first.
             td.appendChild(link);
-            //var historyImage = 
-            // $('<img />').attr({
-            //       src:'some image url',
-            //       width:'width in integer',
-            //       height:'integer'
-            // }).appendTo($('<a />').attr({
-            //       href:'somelink'
-            // }).appendTo($('#someElement')));
+            var br = document.createElement('br');
+            td.appendChild(br);
 
-            var topBtn = $('<button />').attr({ class:'ui small compact basic icon button' });
+            var topBtn = $('<button />')
+                .attr({ class: 'ui small compact basic icon button' })
+                .attr({ title: 'Top (list processes)' })
+            ;
             $(td)
                 .append(
                     $('<span />').attr({ style:'margin-left:5px' })
@@ -124,9 +116,7 @@ $(document)
             ;
 
             $(topBtn).click( function() {
-                //$('#menu-tabs #menu-tab-history').click();
                 $('#tab-top').modal('show');
-                // Get inspect data.
                 $.getJSON('/containers/top/' + val, function() {
                         //console.log('requested');
                 })
@@ -141,11 +131,128 @@ $(document)
                 )
             });
 
+            var statsBtn = $('<button />').attr({ class:'ui small compact basic icon button' });
+            /* Disabled until streaming implemented.
+            $(td)
+                .append(
+                    $('<span />').attr({ style:'margin-left:5px' })
+                .append(
+                    $(statsBtn)
+                .append(
+                    $('<i />').attr({ class:'area chart icon' })
+                )))
+            ;
+            */
+
+            $(statsBtn).click( function() {
+                $('#tab-stats').modal('show');
+                $.getJSON('/containers/stats/' + val, function() {
+                        //console.log('requested');
+                })
+                .done(function(data) {
+                     $('#tab-stats #results').text(JSON.stringify(data));
+                })
+                .fail(
+                    function( jqxhr, textStatus, error ) {
+                        var err = textStatus + ", " + error;
+                        console.log( "Request Failed: " + err );
+                    }
+                )
+            });
+            
+            var changesBtn = $('<button />')
+                .attr({ class: 'ui small compact basic icon button' })
+                .attr({ title: 'Filesystem changes' })
+                ;
+
+            $(td)
+                .append(
+                    $('<span />').attr({ style:'margin-left:5px' })
+                .append(
+                    $(changesBtn)
+                .append(
+                    $('<i />').attr({ class:'write square icon' })
+                )))
+            ;
+
+            $(changesBtn).click( function() {
+                $('#tab-changes').modal('show');
+                $.getJSON('/containers/changes/' + val, function() {
+                        //console.log('requested');
+                })
+                .done(function(data) {
+                     $('#tab-changes #results').text(JSON.stringify(data));
+                })
+                .fail(
+                    function( jqxhr, textStatus, error ) {
+                        var err = textStatus + ", " + error;
+                        console.log( "Request Failed: " + err );
+                    }
+                )
+            });
+
+            /* Disable until post requests implemented.
+            var startBtn = $('<button />').attr({ class:'ui small compact basic icon button' });
+            $(td)
+                .append(
+                    $('<span />').attr({ style:'margin-left:5px' })
+                .append(
+                    $(startBtn)
+                .append(
+                    $('<i />').attr({ class:'play icon' })
+                )))
+            ;
+
+            $(startBtn).click( function() {
+                $('#tab-start').modal('show');
+                $.getJSON('/containers/start/' + val, function() {
+                        //console.log('requested');
+                })
+                .done(function(data) {
+                     $('#tab-start #results').text(JSON.stringify(data));
+                })
+                .fail(
+                    function( jqxhr, textStatus, error ) {
+                        var err = textStatus + ", " + error;
+                        console.log( "Request Failed: " + err );
+                    }
+                )
+            });
+            */
+
+            /* Disabled until post requests implemented.
+            var stopBtn = $('<button />').attr({ class:'ui small compact basic icon button' });
+            $(td)
+                .append(
+                    $('<span />').attr({ style:'margin-left:5px' })
+                .append(
+                    $(stopBtn)
+                .append(
+                    $('<i />').attr({ class:'stop icon' })
+                )))
+            ;
+
+            $(stopBtn).click( function() {
+                $('#tab-stop').modal('show');
+                $.getJSON('/containers/stop/' + val, function() {
+                        //console.log('requested');
+                })
+                .done(function(data) {
+                     $('#tab-stop #results').text(JSON.stringify(data));
+                })
+                .fail(
+                    function( jqxhr, textStatus, error ) {
+                        var err = textStatus + ", " + error;
+                        console.log( "Request Failed: " + err );
+                    }
+                )
+            });
+            */
+
             var historyBtn = $('<button />').attr({ class:'ui small compact basic icon button' });
             $(historyBtn).click( function() {
                 //$('#menu-tabs #menu-tab-history').click();
                 $('#tab-history').modal('show');
-                // Get inspect data.
                 $.getJSON('/containers/log/' + val, function() {
                         //console.log('requested');
                 })
@@ -174,9 +281,7 @@ $(document)
             */
 
             $(link).click( function() {
-                    //$('#menu-tabs #menu-tabs-inspect').click();
                     $('#tab-inspect').modal('show');
-                    // Get inspect data.
                     $.getJSON('/containers/inspect/' + val, function() {
                             //console.log('requested');
                         })
