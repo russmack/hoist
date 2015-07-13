@@ -15,6 +15,19 @@ cd cmd
 go run main.go
 ```
 
+## Somewhat Implemented
+
+#### Images
+- [X] List
+- [X] Inspect
+- [X] History
+
+#### Containers
+- [X] List
+- [X] Inspect
+- [X] Top
+
+
 ## License
 BSD 3-Clause: [LICENSE.txt](LICENSE.txt)
 
