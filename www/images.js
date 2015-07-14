@@ -171,6 +171,20 @@ $(document)
         })
     ;
 
+    $('#menu-tabs-search')
+        .on('click', function() {
+             $.getJSON("/images/search/cassandra")
+                  .done(function(data) {
+                      $('#tab-search #results').text(JSON.stringify(data));
+                   })
+                   .fail(function( jqxhr, textStatus, error ) {
+                       var err = textStatus + ", " + error;
+                       console.log( "Request Failed: " + err );
+                   })
+            ;
+        })
+    ;
+
     function convertUnixTime(unix_timestamp) {
        var date = new Date(unix_timestamp*1000);
       // hours part from the timestamp
