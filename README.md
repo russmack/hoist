@@ -21,12 +21,14 @@ go run main.go
 - [X] List
 - [X] Inspect
 - [X] History
+- [X] Search
 
 #### Containers
 - [X] List
 - [X] Inspect
 - [X] Top
 - [X] Changes
+- [X] Delete
 
 #### Monitor
 - [X] Info
