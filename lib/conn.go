@@ -11,11 +11,17 @@ import (
 )
 
 const (
-	httpTimeout = time.Duration(1 * time.Second)
+	httpTimeout = time.Duration(5 * time.Second)
+	rwTimeout   = time.Duration(10 * time.Second)
 )
 
 func DialTimeout(network, addr string) (net.Conn, error) {
-	return net.DialTimeout(network, addr, httpTimeout)
+	conn, err := net.DialTimeout(network, addr, httpTimeout)
+	if err != nil {
+		return nil, err
+	}
+	conn.SetDeadline(time.Now().Add(rwTimeout))
+	return conn, nil
 }
 
 func ReadHttpResponseBody(resp *http.Response) ([]byte, error) {
