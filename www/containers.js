@@ -191,6 +191,41 @@ $(document)
                 )
             });
 
+            
+            var deleteBtn = $('<button />')
+                .attr({ class: 'ui small compact basic icon button' })
+                .attr({ title: 'Delete' })
+            ;
+
+            $(td)
+                .append(
+                    $('<span />').attr({ style:'margin-left:5px' })
+                .append(
+                    $(deleteBtn)
+                .append(
+                    $('<i />').attr({ class:'remove square icon' })
+                )))
+            ;
+
+            $(deleteBtn).click( function() {
+                $('#tab-delete').modal('show');
+                $.getJSON('/containers/delete/' + val, function() {
+                        //console.log('requested');
+                })
+                .done(function(data) {
+                     $('#tab-delete #results').text(JSON.stringify(data));
+
+                    $('#table-list-body').empty();
+                    loadContainerList();
+                })
+                .fail(
+                    function( jqxhr, textStatus, error ) {
+                        var err = textStatus + ", " + error;
+                        console.log( "Request Failed: " + err );
+                    }
+                )
+            });
+
             /* Disable until post requests implemented.
             var startBtn = $('<button />').attr({ class:'ui small compact basic icon button' });
             $(td)
@@ -308,11 +343,15 @@ $(document)
         .tab('change tab', 'tab-list')
     ;
 
-    $.getJSON("/containers/list")
-        .done(function(data) {
-            tableCreate($("#results")[0], data);
-        })
-    ;
+    loadContainerList();
+
+    function loadContainerList() {
+        $.getJSON("/containers/list")
+            .done(function(data) {
+                tableCreate($("#results")[0], data);
+            })
+        ;
+    }
 
     function convertUnixTime(unix_timestamp) {
        var date = new Date(unix_timestamp*1000);

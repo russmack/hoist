@@ -70,7 +70,6 @@ func imagesEndpointsHandler(w http.ResponseWriter, r *http.Request, ps httproute
 	case "history":
 		fmt.Fprintf(w, imageHistory(cfg, ps.ByName("id")))
 	case "search":
-		//fmt.Fprintf(w, imageSearch(cfg, r.URL.Query().Get("term"))
 		fmt.Fprintf(w, imageSearch(cfg, ps.ByName("id")))
 	}
 }
@@ -92,6 +91,8 @@ func containersEndpointsHandler(w http.ResponseWriter, r *http.Request, ps httpr
 		fmt.Fprintf(w, containerStart(cfg, ps.ByName("id")))
 	case "stop":
 		fmt.Fprintf(w, containerStop(cfg, ps.ByName("id")))
+	case "delete":
+		fmt.Fprintf(w, containerDelete(cfg, ps.ByName("id")))
 	}
 }
 
@@ -180,6 +181,11 @@ func containerStart(cfg Config, containerId string) string {
 func containerStop(cfg Config, containerId string) string {
 	uri := fmt.Sprintf("%s/containers/%s/stop", cfg.Addr, containerId)
 	return getHttpString(uri)
+}
+
+func containerDelete(cfg Config, containerId string) string {
+	uri := fmt.Sprintf("%s/containers/%s", cfg.Addr, containerId)
+	return deleteHttp(uri)
 }
 
 func monitorInfo(cfg Config) string {
@@ -339,7 +345,58 @@ func getHttpString(uri string) string {
 	body := ""
 	if status == 200 {
 		bodyBuf, err := lib.ReadHttpResponseBody(resp)
-		//bodyBuf, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			fmt.Println("err reading body:", err)
+			bodyStr := "{ \"success\": false, \"error\": \"" + err.Error() + "\" }"
+			bodyBuf = []byte(bodyStr)
+		}
+		body = string(bodyBuf)
+	} else {
+		b, err := json.Marshal(resp)
+		if err != nil {
+			body = "{ success: false, error: '" + err.Error() + "' }"
+		} else {
+			body = string(b)
+		}
+	}
+	fmt.Println("Body:", body)
+	return body
+}
+
+func deleteHttp(uri string) string {
+
+	fmt.Println("Dialing...   for delete")
+
+	tlsConfig, err := lib.GetTLSConfig(nil, cfg.SslCert, cfg.SslKey)
+	if err != nil {
+		log.Fatal("Error getting TLS config.", err)
+	}
+	tlsConfig.InsecureSkipVerify = true
+
+	transport := http.Transport{
+		Dial:                  lib.DialTimeout,
+		TLSClientConfig:       tlsConfig,
+		ResponseHeaderTimeout: time.Second * 45,
+	}
+	status := 0
+	client := http.Client{
+		Transport: &transport,
+	}
+	req, err := http.NewRequest("DELETE", uri, nil)
+	if err != nil {
+		log.Fatal("Error creating new DELETE request.")
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatal("Error getting http resource.", err)
+	} else {
+		defer resp.Body.Close()
+		status = resp.StatusCode
+	}
+
+	body := ""
+	if status == 200 {
+		bodyBuf, err := lib.ReadHttpResponseBody(resp)
 		if err != nil {
 			fmt.Println("err reading body:", err)
 			bodyStr := "{ \"success\": false, \"error\": \"" + err.Error() + "\" }"
