@@ -173,14 +173,24 @@ $(document)
 
     $('#menu-tabs-search')
         .on('click', function() {
-             $.getJSON("/images/search/cassandra")
-                  .done(function(data) {
-                      $('#tab-search #results').text(JSON.stringify(data));
-                   })
-                   .fail(function( jqxhr, textStatus, error ) {
-                       var err = textStatus + ", " + error;
-                       console.log( "Request Failed: " + err );
-                   })
+            $('#tab-search')
+                .tab('change tab', 'tab-search')
+            ;
+        })
+    ;
+
+    $('#tab-search-button')
+        .on('click', function() {
+            var term = $('#tab-search-text').val();
+            $.getJSON('/images/search/' + term)
+                .done(function(data) {
+                    $('#tab-search-results').modal('show');
+                    $('#tab-search-results #results').text(JSON.stringify(data));
+                })
+                .fail(function(jqxhr, textStatus, error) {
+                    var err = textStatus + ", " + error;
+                    console.log('Request Failed: ' + err);
+                })
             ;
         })
     ;

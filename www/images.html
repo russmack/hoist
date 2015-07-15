@@ -100,10 +100,20 @@
   <div class="ui basic modal" data-tab="tab-history" id="tab-history">
       <div id="results"></div>
   </div>
-  <div class="ui basic modal" data-tab="tab-search" id="tab-search">
-      <p>This is search</p>
+  <div class="ui tab segment" data-tab="tab-search" id="tab-search">
+      <div class="ui form">
+          <div class="field">
+              <label>Enter image name to search for:</label>
+              <input type="text" id="tab-search-text">
+          </div>
+          <div class="ui submit button" id="tab-search-button">Search</div>
+      </div>
+  </div>
+  <div class="ui basic modal" data-tab="tab-search-results" id="tab-search-results">
+      <p>Search results</p>
       <div id="results"></div>
   </div>
+
 
 
 <!--
