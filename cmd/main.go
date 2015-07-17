@@ -1,14 +1,10 @@
 package main
 
 import (
-	//"bufio"
-	//"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/julienschmidt/httprouter"
 	lib "github.com/russmack/hoist/lib"
-	"io"
-	//"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -107,10 +103,6 @@ func monitorEndpointsHandler(w http.ResponseWriter, r *http.Request, ps httprout
 	case "ping":
 		fmt.Fprintf(w, monitorPing(cfg))
 	case "events":
-		// if r.Header.Get("Accept") == "application/json" {
-		// 	w.Header().Set("Content-Type", "application/json")
-		// 	fmt.Fprint(w, Response{"success": true, "message": "OK"})
-		// }
 		monitorEvents(cfg, w)
 	}
 }
@@ -210,88 +202,51 @@ func monitorPing(cfg Config) string {
 }
 
 func monitorEvents(cfg Config, w http.ResponseWriter) {
+	fmt.Println("monitoring events ...")
 	done := make(chan bool)
-	//uri := fmt.Sprintf("%s/events", cfg.Addr)
-	//eChan := make(chan Event)
-	eChan := make(chan string)
+	uri := fmt.Sprintf("%s/events", cfg.Addr)
+	eChan := make(chan Event)
 
-	//ch := msgBroker.Subscribe()
-	//defer msgBroker.Unsubscribe(ch)
+	f, ok := w.(http.Flusher)
+	if !ok {
+		//http.Error(w, "streaming unsupported", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 
-	//go func(w http.ResponseWriter, eChan chan Event) {
-	go func(w http.ResponseWriter, eChan chan string) {
-		f, ok := w.(http.Flusher)
-		if !ok {
-			//http.Error(w, "streaming unsupported", http.StatusInternalServerError)
-			return
-		}
-		w.Header().Set("Content-Type", "text/event-stream")
-		w.Header().Set("Cache-Control", "no-cache")
-		w.Header().Set("Connection", "keep-alive")
-		w.Header().Set("TestHeader", "IWasHere")
+	cn, ok := w.(http.CloseNotifier)
+	if !ok {
+		//http.Error(rw, "cannot stream", http.StatusInternalServerError)
+		return
+	}
 
-		cn, ok := w.(http.CloseNotifier)
-		if !ok {
-			//http.Error(rw, "cannot stream", http.StatusInternalServerError)
-			return
-		}
-
+	go func(w http.ResponseWriter, eChan chan Event) {
 	loop:
 		for {
-			//msg := <-ch
-			//fmt.Fprintf(w, "data: Message: %s\n\n", msg)
-			//f.Flush()
 			select {
 			case <-cn.CloseNotify():
 				fmt.Println("done: closed connection")
 				return
-
 			case ev, more := <-eChan:
 				if !more {
 					fmt.Println("Finished rx from ev chan")
 					break loop
 				}
-				fmt.Println("%+v", ev)
-				//fmt.Println("rx")
-				//fmt.Fprintf(w, "%+v", ev)
-				fmt.Fprintf(w, "TEST")
+				fmt.Println("event: %+v", ev)
+				fmt.Fprintf(w, "data: %+v\n\n", ev)
 				f.Flush()
-				break loop
+				////break loop
 			}
 		}
 		fmt.Println("sending done")
 		done <- true
 	}(w, eChan)
-	eChan <- "hi there"
-	//getHttpStream(uri, eChan)
-	<-done
-	fmt.Println("Finished stream")
-}
-
-//func monitorEvents(cfg Config, eChan chan string) {
-func xmonitorEvents(cfg Config, w io.Writer) {
-	done := make(chan bool)
-	uri := fmt.Sprintf("%s/events", cfg.Addr)
-	eChan := make(chan Event)
-	go func(w io.Writer, eChan chan Event) {
-	loop:
-		for {
-			select {
-			case ev, more := <-eChan:
-				if !more {
-					fmt.Println("Finished rx from ev chan")
-					break loop
-				}
-				//fmt.Println("%+v", ev)
-				fmt.Println("rx")
-				fmt.Fprintf(w, "%+v", ev)
-			}
-		}
-		done <- true
-	}(w, eChan)
 	getHttpStream(uri, eChan)
 	<-done
-	fmt.Println("RETURNING")
+	fmt.Println("Finished stream")
 }
 
 type Config struct {
@@ -440,7 +395,6 @@ func getHttpStream(uri string, eChan chan Event) {
 	client := http.Client{
 		Transport: &transport,
 	}
-	//req, err := http.NewRequest("GET", c.path.String(), nil)
 	fmt.Println("Requesting stream...")
 	req, err := http.NewRequest("GET", uri, nil)
 	res, err := client.Do(req)
@@ -450,7 +404,9 @@ func getHttpStream(uri string, eChan chan Event) {
 		decoder := json.NewDecoder(res.Body)
 		for {
 			var event Event
+			fmt.Println("loop start: %+v", event)
 			err = decoder.Decode(&event)
+			fmt.Println("loop decoding: %+v", event)
 			if err != nil {
 				//if err == io.EOF || err == io.ErrUnexpectedEOF {
 				// if c.eventMonitor.isEnabled() {
@@ -473,8 +429,9 @@ func getHttpStream(uri string, eChan chan Event) {
 			//	return
 			//}
 			//eventChan <- &event
-			//fmt.Printf("event: %+v\n", event)
+			fmt.Printf("event fired: %+v\n", event)
 			eChan <- event
+			fmt.Println("event enqueued")
 		}
 	}(res, &client)
 }

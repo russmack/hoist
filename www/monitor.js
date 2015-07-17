@@ -160,6 +160,41 @@ $(document)
         })
     ;
 
+    var jsonStream;
+
+    $('#menu-tabs-events')
+        .on('click', function() {
+            if (!!window.EventSource) {
+               console.log('Event sourcing is available.');
+            } else {
+                console.log('Event sourcing is not available in this browser.');
+            }
+            
+            jsonStream = new EventSource('monitor/events');
+            
+            jsonStream.addEventListener('message', function(e) {
+                    console.log(e.data);
+                    $('#tab-events #results').append(e.data + '<br />');
+                }, false)
+            ;
+            
+            jsonStream.addEventListener('open', function(e) {
+                    console.log("opened channel")
+                }, false)
+            ;
+           
+            jsonStream.addEventListener('error', function(e) {
+                    if (e.readyState == EventSource.CLOSED) {
+                        console.log("closed channel")
+                    } else {
+                        console.log('error: ' + e);
+                    }
+                }, false)
+            ;
+
+        })
+    ;
+
     function convertUnixTime(unix_timestamp) {
        var date = new Date(unix_timestamp*1000);
       // hours part from the timestamp
@@ -176,6 +211,7 @@ $(document)
     }
 
     setInterval(changeSides, 3000);
+
 
   })
 ;
