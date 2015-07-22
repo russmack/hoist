@@ -213,8 +213,8 @@ $(document)
                         //console.log('requested');
                 })
                 .done(function(data) {
-                     $('#tab-delete #results').text(JSON.stringify(data));
-
+                    var statusCode = data.StatusCode;
+                    $('#tab-delete #results').text('Response status code: ' + statusCode);
                     $('#table-list-body').empty();
                     loadContainerList();
                 })
