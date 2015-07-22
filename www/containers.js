@@ -121,7 +121,30 @@ $(document)
                         //console.log('requested');
                 })
                 .done(function(data) {
-                     $('#tab-top #results').text(JSON.stringify(data));
+                    if (data.StatusCode === 500 || data.Titles === 'undefined') {
+                        $('#tab-top #results').text('No processes are running.');
+                        return;
+                    }
+                    //$('#tab-top #results').text(JSON.stringify(data));
+                    var tHead = document.getElementById('table-top').tHead.children[0];
+                    for (var col=0; col<data.Titles.length; col++) {
+                        var title = data.Titles[col];
+                        var th = document.createElement('th');
+                        var thVal = document.createTextNode(title);
+                        th.appendChild(thVal);
+                        tHead.appendChild(th);
+                    }
+                    var tBody = document.getElementById('table-top-body');
+                    $(tBody).empty();
+                    for (var r=0; r<data.Processes.length; r++) {
+                        var tr = tBody.insertRow();
+                        var row = data.Processes[r];
+                        for (var c=0; c<row.length; c++) {
+                            var td = tr.insertCell();
+                            var val = row[c];
+                            td.innerHTML = val;
+                        }
+                    }
                 })
                 .fail(
                     function( jqxhr, textStatus, error ) {

@@ -102,8 +102,36 @@
   <div class="ui basic modal" data-tab="tab-inspect" id="tab-inspect">
       <div id="results"></div>
   </div>
-  <div class="ui basic modal" data-tab="tab-top" id="tab-top">
-      <div id="results"></div>
+  <div class="ui basic modal small" data-tab="tab-top" id="tab-top">
+      <div class="header">
+          Container Processes
+      </div>
+      <div class="image content">
+          <div class="image">
+              <i class="ellipsis vertical icon"></i>
+          </div>
+          <div class="description">
+              <p>The following processes are running on the container.</p>
+          </div>
+      </div>
+      <div id="results" class="content">
+          <table class="ui very compact striped inverted table" id="table-top">
+              <thead>
+                  <tr>
+                  </tr>
+              </thead>
+              <tbody id="table-top-body">
+              </tbody>
+          </table>
+      </div>
+      <div class="actions">
+          <div class="one fluid ui inverted buttons">
+              <div class="ui green basic inverted button">
+                  <i class="checkmark icon"></i>
+                  OK
+              </div>
+          </div>
+      </div>
   </div>
   <div class="ui basic modal" data-tab="tab-changes" id="tab-changes">
       <div id="results"></div>
