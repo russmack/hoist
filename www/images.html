@@ -101,15 +101,16 @@
       <div id="results"></div>
   </div>
   <div class="ui tab segment" data-tab="tab-search" id="tab-search">
-      <div class="ui form">
+      <div class="ui form segment success">
           <div class="field">
               <label>Enter image name to search for:</label>
-              <input type="text" id="tab-search-text">
+              <input type="text" id="tab-search-text" name="tab-search-text" placeholder="Search..." autofocus autocomplete="off">
           </div>
-          <div class="ui submit button" id="tab-search-button">Search</div>
+          <button class="ui submit button" id="tab-search-button">Search</button>
+          <div class="ui page dimmer"><div class="ui text loader">Searching...</div></div>
       </div>
   </div>
-  <div class="ui basic modal" data-tab="tab-search-results" id="tab-search-results">
+  <div class="ui modal" data-tab="tab-search-results" id="tab-search-results">
       <p>Search results</p>
       <div id="results"></div>
   </div>

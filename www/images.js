@@ -179,11 +179,24 @@ $(document)
         })
     ;
 
-    $('#tab-search-button')
-        .on('click', function() {
+    var validationRules = {
+        'tab-search-text': {
+            identifier: 'tab-search-text', 
+            rules: [
+            {
+                type: 'empty',
+                prompt: 'What would you like to search for?'
+            }
+            ]
+        }
+    };
+
+    $('.ui.form').form( validationRules , { inline: true,  onSuccess: function() {
+            $('.ui.dimmer').dimmer('show');
             var term = $('#tab-search-text').val();
             $.getJSON('/images/search/' + term)
                 .done(function(data) {
+                    $('.ui.dimmer').dimmer('hide');
                     $('#tab-search-results').modal('show');
                     $('#tab-search-results #results').text(JSON.stringify(data));
                 })
@@ -192,7 +205,7 @@ $(document)
                     console.log('Request Failed: ' + err);
                 })
             ;
-        })
+        }})
     ;
 
     function convertUnixTime(unix_timestamp) {
