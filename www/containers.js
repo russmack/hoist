@@ -116,17 +116,22 @@ $(document)
             ;
 
             $(topBtn).click( function() {
-                $('#tab-top').modal('show');
                 $.getJSON('/containers/top/' + val, function() {
                         //console.log('requested');
                 })
                 .done(function(data) {
+                    var tHead = document.getElementById('table-top').tHead.children[0];
+                    var tBody = document.getElementById('table-top-body');
+                    $('#tab-top-message').text('');
+                    $('#tab-top').modal('show');
                     if (data.StatusCode === 500 || data.Titles === 'undefined') {
-                        $('#tab-top #results').text('No processes are running.');
+                        $(tHead).empty();
+                        $(tBody).empty();
+                        $('#tab-top-message').text('No processes are running.');
                         return;
                     }
+                    $(tHead).empty();
                     //$('#tab-top #results').text(JSON.stringify(data));
-                    var tHead = document.getElementById('table-top').tHead.children[0];
                     for (var col=0; col<data.Titles.length; col++) {
                         var title = data.Titles[col];
                         var th = document.createElement('th');
@@ -134,7 +139,6 @@ $(document)
                         th.appendChild(thVal);
                         tHead.appendChild(th);
                     }
-                    var tBody = document.getElementById('table-top-body');
                     $(tBody).empty();
                     for (var r=0; r<data.Processes.length; r++) {
                         var tr = tBody.insertRow();
