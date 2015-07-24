@@ -203,19 +203,34 @@ $(document)
             ;
 
             $(changesBtn).click( function() {
-                $('#tab-changes').modal('show');
+                $('#tab-changes-message').text('');
+                var t = document.getElementById('table-changes');
+                var tbl = new Table();
+                tbl.create(t);
+                tbl.clear();
+
                 $.getJSON('/containers/changes/' + val, function() {
-                        //console.log('requested');
+                    //console.log('requested');
                 })
                 .done(function(data) {
-                     $('#tab-changes #results').text(JSON.stringify(data));
+                    if (data.length === 0) {
+                        $('#tab-changes-message').text('No changes.');
+                        $('#tab-changes').modal('show');
+                        return;
+                    }
+                    var t = document.getElementById('table-changes');
+                    var tbl = new Table();
+                    tbl.create(t);
+                    tbl.setHeader(['Kind', 'Path']);
+                    tbl.addBody(data);
+                    $('#tab-changes').modal('show');
                 })
                 .fail(
                     function( jqxhr, textStatus, error ) {
                         var err = textStatus + ", " + error;
                         console.log( "Request Failed: " + err );
                     }
-                )
+                    )
             });
 
             
@@ -380,6 +395,8 @@ $(document)
         ;
     }
 
+    setInterval(changeSides, 3000);
+
     function convertUnixTime(unix_timestamp) {
        var date = new Date(unix_timestamp*1000);
       // hours part from the timestamp
@@ -395,7 +412,60 @@ $(document)
       return date;
     }
 
-    setInterval(changeSides, 3000);
+    function Table() {
+        this.table;
+    }
+    Table.prototype.create = function(tableElem) {
+        this.table = tableElem;
+    };
+    Table.prototype.setHeader = function(v) {
+        var th = this.table.tHead;
+        if (th !== null) {
+            this.table.deleteTHead();
+        }
+        th = this.table.createTHead();
+        var row = th.insertRow(0);
+        for (var i=0; i<v.length; i++) {
+            var cell = row.insertCell(i);
+            var txt = document.createTextNode(v[i]);
+            cell.appendChild(txt);
+        }
+    };
+    Table.prototype.addBody = function(v) {
+        var newtbody = document.createElement('tbody');
+        var tbody = this.table.tBodies;
+        if (tbody !== null) {
+            tbody[0].parentNode.replaceChild(newtbody, tbody[0]);
+        }
+        var b = this.table.tBodies[0];
+        for (var r=0; r<v.length; r++) {
+            var row = b.insertRow();
+            for (prop in v[r]) {
+                if( v[r].hasOwnProperty(prop) ) {
+                    var cell = row.insertCell();
+                    var txt = document.createTextNode(v[r][prop]);
+                    cell.appendChild(txt);
+                }
+            }
+        }
+    };
+    Table.prototype.clearHeader = function() {
+        if (this.table.tHead !== null) {
+            this.table.deleteTHead();
+        }
+    };
+    Table.prototype.clearBody = function() {
+        //for (var i=0; i<this.table.rows
+        var newtbody = document.createElement('tbody');
+        var tbody = this.table.tBodies;
+        if (tbody !== null) {
+            tbody[0].parentNode.replaceChild(newtbody, tbody[0]);
+        }
+    };
+    Table.prototype.clear = function() {
+        this.clearHeader();
+        this.clearBody();
+    };
 
   })
 ;
