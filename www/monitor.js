@@ -2,22 +2,6 @@ $(document)
   .ready(function() {
 
     var
-      changeSides = function() {
-        $('.ui.shape')
-          .eq(0)
-            .shape('flip over')
-            .end()
-          .eq(1)
-            .shape('flip over')
-            .end()
-          .eq(2)
-            .shape('flip back')
-            .end()
-          .eq(3)
-            .shape('flip back')
-            .end()
-        ;
-      },
       validationRules = {
         firstName: {
           identifier  : 'email',
@@ -194,24 +178,6 @@ $(document)
 
         })
     ;
-
-    function convertUnixTime(unix_timestamp) {
-       var date = new Date(unix_timestamp*1000);
-      // hours part from the timestamp
-      var hours = date.getHours();
-      // // minutes part from the timestamp
-      var minutes = "0" + date.getMinutes();
-      // // seconds part from the timestamp
-      var seconds = "0" + date.getSeconds();
-      
-      // // will display time in 10:30:23 format
-      var formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
-      //return formattedTime;
-      return date;
-    }
-
-    setInterval(changeSides, 3000);
-
 
   })
 ;
