@@ -44,7 +44,6 @@ $(document)
         {
             var tr = listBody.insertRow();
             var td = tr.insertCell();
-            var id = data[i].Id.substring(0, 11);
             var idLink = data[i].Id;
             td.innerHTML = idLink;
             var td = tr.insertCell();
@@ -70,7 +69,6 @@ $(document)
             var td = tr.insertCell();
             td.appendChild(document.createTextNode(data[i].SizeRootFs));
         }
-        //el.appendChild(tbl);
         $('#table-list > tbody > tr').each( function() {
             var td = $('td:eq(0)', this)[0];
             var val = td.innerText;
@@ -85,60 +83,26 @@ $(document)
             var br = document.createElement('br');
             td.appendChild(br);
 
-            var topBtn = $('<button />')
-                .attr({ class: 'ui small compact basic icon button' })
-                .attr({ title: 'Top (list processes)' })
-            ;
-            $(td)
-                .append(
-                    $('<span />').attr({ style:'margin-left:5px' })
-                .append(
-                    $(topBtn)
-                .append(
-                    $('<i />').attr({ class:'browser icon' })
-                )))
-            ;
+            var topBtn = buildButton('Top (list processes)', 'browser icon');
+            $(td).append($(topBtn));
 
             $(topBtn).click( function() {
                 $.getJSON('/containers/top/' + val, function() {
-                        //console.log('requested');
+                    //console.log('requested'); i
                 })
                 .done(function(data) {
-                    $('#tab-top-message').text('');
-                    var tbl = new Table();
-                    var t = document.getElementById('table-top');
-                    tbl.create(t);
-                    tbl.clear();
-                    if (data.StatusCode === 500 || data.Titles === 'undefined') {
-                        $('#tab-top-message').text('No processes are running.');
-                        $('#tab-top').modal('show');
-                        return;
-                    }
-                    tbl.setHeader(data.Titles);
-                    tbl.addBody(data.Processes);
-                    $('#tab-top').modal('show');
+                    renderTopData(data);
                 })
-                .fail(
-                    function( jqxhr, textStatus, error ) {
+                .fail(function( jqxhr, textStatus, error ) {
                         var err = textStatus + ", " + error;
                         console.log( "Request Failed: " + err );
-                    }
-                )
+                })
             });
 
-            var statsBtn = $('<button />').attr({ class:'ui small compact basic icon button' });
-            /* Disabled until streaming implemented.
-            $(td)
-                .append(
-                    $('<span />').attr({ style:'margin-left:5px' })
-                .append(
-                    $(statsBtn)
-                .append(
-                    $('<i />').attr({ class:'area chart icon' })
-                )))
-            ;
-            */
-
+            var statsBtn = buildButton('Statistics', 'area chart icon');
+            // Disabled until streaming implemented.
+            //$(td).append($(statsBtn));
+            /*
             $(statsBtn).click( function() {
                 $('#tab-stats').modal('show');
                 $.getJSON('/containers/stats/' + val, function() {
@@ -154,21 +118,9 @@ $(document)
                     }
                 )
             });
-            
-            var changesBtn = $('<button />')
-                .attr({ class: 'ui small compact basic icon button' })
-                .attr({ title: 'Filesystem changes' })
-                ;
-
-            $(td)
-                .append(
-                    $('<span />').attr({ style:'margin-left:5px' })
-                .append(
-                    $(changesBtn)
-                .append(
-                    $('<i />').attr({ class:'write square icon' })
-                )))
-            ;
+            */
+            var changesBtn = buildButton('Filesystem changes', 'write square icon');
+            $(td).append($(changesBtn));
 
             $(changesBtn).click( function() {
                 $('#tab-changes-message').text('');
@@ -183,12 +135,9 @@ $(document)
                 .done(function(data) {
                     if (data.length === 0) {
                         $('#tab-changes-message').text('No changes.');
-                        $('#tab-changes').modal('show');
+                        $('#tab-changes-modal-message').modal('show');
                         return;
                     }
-                    var t = document.getElementById('table-changes');
-                    var tbl = new Table();
-                    tbl.create(t);
                     tbl.setHeader(['Kind', 'Path']);
                     tbl.addBody(data);
                     $('#tab-changes').modal('show');
@@ -202,20 +151,8 @@ $(document)
             });
 
             
-            var deleteBtn = $('<button />')
-                .attr({ class: 'ui small compact basic icon button' })
-                .attr({ title: 'Delete' })
-            ;
-
-            $(td)
-                .append(
-                    $('<span />').attr({ style:'margin-left:5px' })
-                .append(
-                    $(deleteBtn)
-                .append(
-                    $('<i />').attr({ class:'remove square icon' })
-                )))
-            ;
+            var deleteBtn = buildButton('Delete', 'remove square icon');
+            $(td).append($(deleteBtn));
 
             $(deleteBtn).click( function() {
                 $('#tab-delete').modal('show');
@@ -236,18 +173,10 @@ $(document)
                 )
             });
 
-            /* Disable until post requests implemented.
-            var startBtn = $('<button />').attr({ class:'ui small compact basic icon button' });
-            $(td)
-                .append(
-                    $('<span />').attr({ style:'margin-left:5px' })
-                .append(
-                    $(startBtn)
-                .append(
-                    $('<i />').attr({ class:'play icon' })
-                )))
-            ;
-
+            var startBtn = buildButton('Start', 'play icon');
+            // Disable until post requests implemented.
+            //$(td).append($(startBtn));
+            /*
             $(startBtn).click( function() {
                 $('#tab-start').modal('show');
                 $.getJSON('/containers/start/' + val, function() {
@@ -264,19 +193,10 @@ $(document)
                 )
             });
             */
-
-            /* Disabled until post requests implemented.
-            var stopBtn = $('<button />').attr({ class:'ui small compact basic icon button' });
-            $(td)
-                .append(
-                    $('<span />').attr({ style:'margin-left:5px' })
-                .append(
-                    $(stopBtn)
-                .append(
-                    $('<i />').attr({ class:'stop icon' })
-                )))
-            ;
-
+            var stopBtn = buildButton('Stop', 'stop icon');
+            // Disabled until post requests implemented.
+            //$(td).append($(stopBtn));
+            /*
             $(stopBtn).click( function() {
                 $('#tab-stop').modal('show');
                 $.getJSON('/containers/stop/' + val, function() {
@@ -293,10 +213,11 @@ $(document)
                 )
             });
             */
-
-            var historyBtn = $('<button />').attr({ class:'ui small compact basic icon button' });
+            var historyBtn = buildButton('Logs', 'history icon');
+            // Disabled containers logs button, until stream response understood.
+            //$(td).append($(historyBtn));
+            /*
             $(historyBtn).click( function() {
-                //$('#menu-tabs #menu-tab-history').click();
                 $('#tab-history').modal('show');
                 $.getJSON('/containers/log/' + val, function() {
                         //console.log('requested');
@@ -311,20 +232,7 @@ $(document)
                     }
                 )
             });
-
-
-            /* Disabled containers logs button, until stream response understood.
-            $(td)
-                .append(
-                    $('<span />').attr({ style:'margin-left:5px' })
-                .append(
-                    $(historyBtn)
-                .append(
-                    $('<i />').attr({ class:'history icon' })
-                )))
-            ;
             */
-
             $(link).click( function() {
                     $('#tab-inspect').modal('show');
                     $.getJSON('/containers/inspect/' + val, function() {
@@ -349,6 +257,40 @@ $(document)
 
     }
 
+    function buildButton(title, icon) {
+        var btn = $('<button />')
+            .attr({ class: 'ui small compact basic icon button' })
+            .attr({ title: title })
+            ;
+        btn = 
+            $('<span />').attr({ style:'margin-left:5px' })
+            .append(
+                    $(btn)
+                    .append(
+                        $('<i />').attr({ class: icon })
+                        )
+                   )
+            ;
+        return btn;
+    }
+
+    function renderTopData(data) {
+        $('#tab-top-message').text('');
+        var tbl = new Table();
+        var t = document.getElementById('table-top');
+        tbl.create(t);
+        tbl.clear();
+        if (data.StatusCode === 500 || data.Titles === 'undefined') {
+            $('#tab-top-message').text('No processes are running.');
+            $('#tab-top').modal('show');
+            return;
+        }
+        tbl.setHeader(data.Titles);
+        tbl.addBody(data.Processes);
+        $('#tab-top').modal('show');
+    }
+
+
     $('#menu-tabs .item')
         .tab('change tab', 'tab-list')
     ;
@@ -358,28 +300,25 @@ $(document)
     function loadContainerList() {
         $.getJSON("/containers/list")
             .done(function(data) {
-                //tableCreate($("#results")[0], data);
-                    if (data.length === 0) {
-                        $('#tab-list-message').text('No containers.');
-                        //$('#tab-list').modal('show');
-                        return;
-                    }
-                    var t = document.getElementById('table-list');
-                    var tbl = new Table();
-                    tbl.create(t);
-                    tbl.setHeader([
-                        'Id', 
-                        'Image', 
-                        'Command', 
-                        'Created', 
-                        'Status', 
-                        'Ports', 
-                        'Size Rw', 
-                        'Size RootFs'
+                if (data.length === 0) {
+                    $('#tab-list-message').text('No containers.');
+                    return;
+                }
+                var t = document.getElementById('table-list');
+                var tbl = new Table();
+                tbl.create(t);
+                tbl.setHeader([
+                    'Id', 
+                    'Image', 
+                    'Command', 
+                    'Created', 
+                    'Status', 
+                    'Ports', 
+                    'Size Rw', 
+                    'Size RootFs'
                     ]);
-                    //tbl.addBody(data);
-                    //$('#tab-list').modal('show');
-                    tableCreate($("#results")[0], data);
+                //tbl.addBody(data);
+                tableCreate($("#results")[0], data);
             })
         ;
     }
