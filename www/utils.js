@@ -29,7 +29,8 @@ Table.prototype.setHeader = function(v) {
     th = this.table.createTHead();
     var row = th.insertRow(0);
     for (var i=0; i<v.length; i++) {
-        var cell = row.insertCell(i);
+        var cell = document.createElement('th');
+        row.appendChild(cell);
         var txt = document.createTextNode(v[i]);
         cell.appendChild(txt);
     }
@@ -58,7 +59,6 @@ Table.prototype.clearHeader = function() {
     }
 };
 Table.prototype.clearBody = function() {
-    //for (var i=0; i<this.table.rows
     var newtbody = document.createElement('tbody');
     var tbody = this.table.tBodies;
     if (tbody !== null) {
