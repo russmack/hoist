@@ -104,35 +104,19 @@ $(document)
                         //console.log('requested');
                 })
                 .done(function(data) {
-                    var tHead = document.getElementById('table-top').tHead.children[0];
-                    var tBody = document.getElementById('table-top-body');
                     $('#tab-top-message').text('');
-                    $('#tab-top').modal('show');
+                    var tbl = new Table();
+                    var t = document.getElementById('table-top');
+                    tbl.create(t);
+                    tbl.clear();
                     if (data.StatusCode === 500 || data.Titles === 'undefined') {
-                        $(tHead).empty();
-                        $(tBody).empty();
                         $('#tab-top-message').text('No processes are running.');
+                        $('#tab-top').modal('show');
                         return;
                     }
-                    $(tHead).empty();
-                    //$('#tab-top #results').text(JSON.stringify(data));
-                    for (var col=0; col<data.Titles.length; col++) {
-                        var title = data.Titles[col];
-                        var th = document.createElement('th');
-                        var thVal = document.createTextNode(title);
-                        th.appendChild(thVal);
-                        tHead.appendChild(th);
-                    }
-                    $(tBody).empty();
-                    for (var r=0; r<data.Processes.length; r++) {
-                        var tr = tBody.insertRow();
-                        var row = data.Processes[r];
-                        for (var c=0; c<row.length; c++) {
-                            var td = tr.insertCell();
-                            var val = row[c];
-                            td.innerHTML = val;
-                        }
-                    }
+                    tbl.setHeader(data.Titles);
+                    tbl.addBody(data.Processes);
+                    $('#tab-top').modal('show');
                 })
                 .fail(
                     function( jqxhr, textStatus, error ) {
@@ -374,7 +358,28 @@ $(document)
     function loadContainerList() {
         $.getJSON("/containers/list")
             .done(function(data) {
-                tableCreate($("#results")[0], data);
+                //tableCreate($("#results")[0], data);
+                    if (data.length === 0) {
+                        $('#tab-list-message').text('No containers.');
+                        //$('#tab-list').modal('show');
+                        return;
+                    }
+                    var t = document.getElementById('table-list');
+                    var tbl = new Table();
+                    tbl.create(t);
+                    tbl.setHeader([
+                        'Id', 
+                        'Image', 
+                        'Command', 
+                        'Created', 
+                        'Status', 
+                        'Ports', 
+                        'Size Rw', 
+                        'Size RootFs'
+                    ]);
+                    //tbl.addBody(data);
+                    //$('#tab-list').modal('show');
+                    tableCreate($("#results")[0], data);
             })
         ;
     }

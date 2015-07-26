@@ -58,19 +58,6 @@
           List
       </a>
       <!--
-      <a class="item" data-tab="tab-inspect" id="menu-tabs-inspect">
-          Inspect
-      </a>
-      <a class="item" data-tab="tab-history" id="menu-tabs-history">
-          History
-      </a>
-      -->
-      <!--
-      <a class="item" data-tab="search">
-          Search
-      </a>
-      -->
-      <!--
       <div class="right menu">
           <a class="ui item">
               Logout
@@ -81,28 +68,19 @@
 
 
   <div class="ui tab segment active" data-tab="tab-list" id="tab-list">
+      <div id="tab-list-message"></div>
       <div id="results">
-          <table class="ui celled table" id="table-list">
-              <thead>
-                  <tr>
-                      <th>Id</th>
-                      <th>Image</th>
-                      <th>Command</th>
-                      <th>Created</th>
-                      <th>Status</th>
-                      <th>Ports</th>
-                      <th>Size Rw</th>
-                      <th>Size RootFs</th>
-                  </tr>
-              </thead>
-              <tbody id="table-list-body">
-              </tbody>
+          <table class="ui very compact striped celled table" id="table-list">
+              <thead></thead>
+              <tbody id="table-list-body"></tbody>
           </table>
       </div>
   </div>
+
   <div class="ui basic modal" data-tab="tab-inspect" id="tab-inspect">
       <div id="results"></div>
   </div>
+
   <div class="ui basic modal small" data-tab="tab-top" id="tab-top">
       <div class="header">
           Container Processes
@@ -118,10 +96,7 @@
       <div id="tab-top-message"></div>
       <div id="results" class="content">
           <table class="ui very compact striped inverted table" id="table-top">
-              <thead>
-                  <tr>
-                  </tr>
-              </thead>
+              <thead></thead>
               <tbody id="table-top-body">
               </tbody>
           </table>
@@ -135,19 +110,18 @@
           </div>
       </div>
   </div>
+
   <div class="ui basic long modal" data-tab="tab-changes" id="tab-changes">
       <div id="tab-changes-message"></div>
       <div id="results">
           <table class="ui celled table" id="table-changes">
-              <thead>
-                  <tr>
-                  </tr>
-              </thead>
+              <thead></thead>
               <tbody id="table-changes-body">
               </tbody>
           </table>
       </div>
   </div>
+
   <div class="ui basic modal small" data-tab="tab-delete" id="tab-delete">
       <!--<i class="close icon"></i>-->
       <div class="header">
