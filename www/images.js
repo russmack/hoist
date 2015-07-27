@@ -180,8 +180,8 @@ $(document)
             $.getJSON('/images/search/' + term)
                 .done(function(data) {
                     $('.ui.dimmer').dimmer('hide');
-                    $('#tab-search-results').modal('show');
                     $('#tab-search-results #results').text(JSON.stringify(data));
+                    $('#tab-search-results').modal('show');
                 })
                 .fail(function(jqxhr, textStatus, error) {
                     var err = textStatus + ", " + error;

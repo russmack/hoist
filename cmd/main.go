@@ -292,7 +292,9 @@ func getHttpString(uri string) string {
 	}
 	resp, err := client.Get(uri)
 	if err != nil {
-		log.Fatal("Error getting http resource.", err)
+		body := fmt.Sprintf("{ \"success\": false, \"error\": \"Error getting http resource. %s\" }", err)
+		log.Println(body)
+		return body
 	} else {
 		defer resp.Body.Close()
 		status = resp.StatusCode
