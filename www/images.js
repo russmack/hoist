@@ -180,7 +180,7 @@ $(document)
             $.getJSON('/images/search/' + term)
                 .done(function(data) {
                     $('.ui.dimmer').dimmer('hide');
-                    $('#tab-search-results #results').text(JSON.stringify(data));
+                    $('#tab-search-results #results').text(renderSearchResults(data));
                     $('#tab-search-results').modal('show');
                 })
                 .fail(function(jqxhr, textStatus, error) {
@@ -191,6 +191,20 @@ $(document)
         }})
     ;
 
+    function renderSearchResults(json) {
+        $('#tab-search-results-message').text('');
+        var t = document.getElementById('table-search-results');
+        var tbl = new Table();
+        tbl.create(t);
+        tbl.clear();
+        if (json.length === 0) {
+            $('#tab-search-results-modal-message').modal('show');
+            $('#tab-search-results-message').text('No results.');
+            return;
+        }
+        tbl.setHeader(['Description', 'Is Official', 'Is Trusted', 'Name', 'Star Count']);
+        tbl.addBody(json);
+    }
 
   })
 ;
