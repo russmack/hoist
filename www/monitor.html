@@ -51,8 +51,6 @@
     </div>
   </div>
 
-
-
   <div class="ui secondary pointing menu" id="menu-tabs">
       <a class="item" data-tab="tab-info" id="menu-tabs-info">
           Info
@@ -75,33 +73,45 @@
       -->
   </div>
 
-  <!--
-  <div class="ui tab segment active" data-tab="tab-infox" id="tab-infox">
+  <div class="ui tab segment active" data-tab="tab-info" id="tab-info">
       <div id="results">
-          <table class="ui celled table" id="table-list">
-              <thead>
-                  <tr>
-                      <th>Id</th>
-                      <th>Image</th>
-                      <th>Command</th>
-                      <th>Created</th>
-                      <th>Status</th>
-                      <th>Ports</th>
-                      <th>Size Rw</th>
-                      <th>Size RootFs</th>
-                  </tr>
-              </thead>
-              <tbody>
-              </tbody>
-          </table>
+          <div><span class="props-list">Containers: </span><span id="info-containers"></span></div>
+          <div><span class="props-list">Debug: </span><span id="info-debug"></span></div>
+          <div><span class="props-list">Docker Root Dir: </span><span id="info-dockerrootdir"></span></div>
+          <div><span class="props-list">Driver: </span><span id="info-driver"></span></div>
+          <div><span class="props-list">Driver Status: </span><span id="info-driverstatus"></span></div>
+          <div><span class="props-list">Execution Driver: </span><span id="info-executiondriver"></span></div>
+          <div><span class="props-list">ID: </span><span id="info-id"></span></div>
+          <div><span class="props-list">IPv4 Forwarding: </span><span id="info-ipv4forwarding"></span></div>
+          <div><span class="props-list">Images: </span><span id="info-images"></span></div>
+          <div><span class="props-list">Index Server Address: </span><span id="info-indexserveraddress"></span></div>
+          <div><span class="props-list">Init Path: </span><span id="info-initpath"></span></div>
+          <div><span class="props-list">Init Sha1: </span><span id="info-initsha1"></span></div>
+          <div><span class="props-list">Kernel Version: </span><span id="info-kernelversion"></span></div>
+          <div><span class="props-list">Labels: </span><span id="info-labels"></span></div>
+          <div><span class="props-list">Mem Total: </span><span id="info-memtotal"></span></div>
+          <div><span class="props-list">Memory Limit: </span><span id="info-memorylimit"></span></div>
+          <div><span class="props-list">NCPU: </span><span id="info-ncpu"></span></div>
+          <div><span class="props-list">NEvents Listener: </span><span id="info-neventslistener"></span></div>
+          <div><span class="props-list">NFd: </span><span id="info-nfd"></span></div>
+          <div><span class="props-list">NGoroutines: </span><span id="info-ngoroutines"></span></div>
+          <div><span class="props-list">Name: </span><span id="info-name"></span></div>
+          <div><span class="props-list">Operating System: </span><span id="info-operatingsystem"></span></div>
+          <div><span class="props-list">Registry Config: </span><span id="info-registryconfig"></span></div>
+          <div><span class="props-list">Swap Limit: </span><span id="info-swaplimit"></span></div>
+          <div><span class="props-list">System Time: </span><span id="info-systemtime"></span></div>
       </div>
   </div>
-  -->
-  <div class="ui tab segment active" data-tab="tab-info" id="tab-info">
-      <div id="results"></div>
-  </div>
   <div class="ui tab segment" data-tab="tab-dockerversion" id="tab-dockerversion">
-      <div id="results"></div>
+      <div id="results">
+          <div><span class="props-list">Api Version: </span><span id="version-apiversion"></span></div>
+          <div><span class="props-list">Arch: </span><span id="version-arch"></span></div>
+          <div><span class="props-list">Git Commit: </span><span id="version-gitcommit"></span></div>
+          <div><span class="props-list">Go Version: </span><span id="version-goversion"></span></div>
+          <div><span class="props-list">Kernel Version: </span><span id="version-kernelversion"></span></div>
+          <div><span class="props-list">Os: </span><span id="version-os"></span></div>
+          <div><span class="props-list">Version: </span><span id="version-version"></span></div>
+      </div>
   </div>
   <div class="ui tab segment" data-tab="tab-ping" id="tab-ping">
       <div id="results"></div>
@@ -109,29 +119,6 @@
   <div class="ui tab segment" data-tab="tab-events" id="tab-events">
       <div id="results"></div>
   </div>
-  <!--
-  <div class="ui basic modal" data-tab="tab-start" id="tab-start">
-      <div id="results"></div>
-  </div>
-  <div class="ui basic modal" data-tab="tab-stop" id="tab-stop">
-      <div id="results"></div>
-  </div>
-  -->
-  <!--
-  <div class="ui basic modal" data-tab="tab-stats" id="tab-stats">
-      <div id="results"></div>
-  </div>
-  -->
-  <!--
-  <div class="ui basic modal" data-tab="tab-logs" id="tab-logs">
-      <div id="results"></div>
-  </div>
-  -->
-  <div class="ui tab segment" data-tab="search">
-      <p>This is search</p>
-  </div>
-
-
 
   <div class="ui inverted footer vertical segment">
     <div class="ui stackable center aligned page grid">

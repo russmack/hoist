@@ -35,80 +35,9 @@ $(document)
       .transition('scale in', 1000)
     ;
 
-    // Function to create a table.
-    function tableCreate(el, data)
-    {
-        var listBody = $('#table-list > tbody')[0];
-
-        for (var i = 0; i < data.length; i++)
-        {
-            var tr = listBody.insertRow();
-            var td = tr.insertCell();
-            var id = data[i].Id.substring(0, 11);
-            var idLink = data[i].Id;
-            td.innerHTML = idLink;
-            var td = tr.insertCell();
-            td.appendChild(document.createTextNode(data[i].Image));
-            var td = tr.insertCell();
-            td.appendChild(document.createTextNode(data[i].Command));
-            var td = tr.insertCell();
-            var dt = convertUnixTime(data[i].Created);
-            td.appendChild(document.createTextNode(dt));
-            var td = tr.insertCell();
-            td.appendChild(document.createTextNode(data[i].Status));
-            var td = tr.insertCell();
-            var text = '';
-            if (data[i].Ports !== 'undefined' && data[i].Ports !== null)  {
-                for (var j = 0; j < data[i].Ports.length; j++)
-                {
-                    text += JSON.stringify(data[i].Ports[j]);
-                }
-            }
-            td.appendChild(document.createTextNode(text));
-            var td = tr.insertCell();
-            td.appendChild(document.createTextNode(data[i].SizeRw));
-            var td = tr.insertCell();
-            td.appendChild(document.createTextNode(data[i].SizeRootFs));
-        }
-        //el.appendChild(tbl);
-        $('#table-list > tbody > tr').each( function() {
-            var td = $('td:eq(0)', this)[0];
-            var val = td.innerText;
-            var abbr = val.substring(0, 11);
-            var link = document.createElement('a');
-            var linkText = document.createTextNode(abbr);
-            link.setAttribute('href', '#')
-            link.className = '';
-            link.appendChild(linkText);
-            td.innerHTML = '';  // Clear cell first.
-            td.appendChild(link);
-            var br = document.createElement('br');
-            td.appendChild(br);
-
-
-
-
-
-        });
-
-    }
-
     $('#menu-tabs .item')
         .tab('change tab', 'tab-info')
     ;
-    loadInfoTab();
-
-    function loadInfoTab() {
-        $.getJSON("/monitor/info")
-            .done(function(data) {
-                $('#tab-info #results').text(JSON.stringify(data));
-            })
-        .fail(function( jqxhr, textStatus, error ) {
-            var err = textStatus + ", " + error;
-            console.log( "Request Failed: " + err );
-        })
-        ;
-    }
 
     $('#menu-tabs-info')
         .on('click', function() {
@@ -120,7 +49,13 @@ $(document)
         .on('click', function() {
             $.getJSON("/monitor/version")
                 .done(function(data) {
-                    $('#tab-dockerversion #results').text(JSON.stringify(data));
+                    document.getElementById('version-apiversion').innerHTML = data.ApiVersion;
+                    document.getElementById('version-arch').innerHTML = data.Arch;
+                    document.getElementById('version-gitcommit').innerHTML = data.GitCommit;
+                    document.getElementById('version-goversion').innerHTML = data.GoVersion;
+                    document.getElementById('version-kernelversion').innerHTML = data.KernelVersion;
+                    document.getElementById('version-os').innerHTML = data.Os;
+                    document.getElementById('version-version').innerHTML = data.Version;
                 })
                 .fail(function( jqxhr, textStatus, error ) {
                     var err = textStatus + ", " + error;
@@ -134,7 +69,7 @@ $(document)
         .on('click', function() {
             $.getJSON("/monitor/ping")
                 .done(function(data) {
-                    $('#tab-ping #results').text(JSON.stringify(data));
+                    $('#tab-ping #results').text('Ping response: ' + JSON.stringify(data));
                 })
                 .fail(function( jqxhr, textStatus, error ) {
                     var err = textStatus + ", " + error;
@@ -178,6 +113,56 @@ $(document)
 
         })
     ;
+
+    function loadInfoTab() {
+        $.getJSON("/monitor/info")
+            .done(function(data) {
+                var driverStatus = '';
+                for (var i=0; i<data.DriverStatus.length; i++) {
+                    driverStatus += '<br />';
+                    for (var j=0; j<data.DriverStatus[i].length; j++) {
+                        driverStatus += '&nbsp;&nbsp;&nbsp;&nbsp;' + data.DriverStatus[i][j] + ' : ';
+                    }
+                }
+                var registryConfig = '';
+                registryConfig += '<br />&nbsp;&nbsp;&nbsp;&nbsp;Index Configs: ' + 
+                    JSON.stringify(data.RegistryConfig.IndexConfigs);
+                registryConfig += '<br />&nbsp;&nbsp;&nbsp;&nbsp;Insecure Registry CIDRs: ' + 
+                    JSON.stringify(data.RegistryConfig.InsecureRegistryCIDRs);
+                document.getElementById('info-containers').innerHTML = data.Containers;
+                document.getElementById('info-debug').innerHTML = data.Debug;
+                document.getElementById('info-dockerrootdir').innerHTML = data.DockerRootDir;
+                document.getElementById('info-driver').innerHTML = data.Driver;
+                document.getElementById('info-driverstatus').innerHTML = driverStatus;
+                document.getElementById('info-executiondriver').innerHTML = data.ExecutionDriver;
+                document.getElementById('info-id').innerHTML = data.ID;
+                document.getElementById('info-ipv4forwarding').innerHTML = data.IPv4Forwarding;
+                document.getElementById('info-images').innerHTML = data.Images;
+                document.getElementById('info-indexserveraddress').innerHTML = data.IndexServerAddress;
+                document.getElementById('info-initpath').innerHTML = data.InitPath;
+                document.getElementById('info-initsha1').innerHTML = data.InitSha1;
+                document.getElementById('info-kernelversion').innerHTML = data.KernelVersion;
+                document.getElementById('info-labels').innerHTML = data.Labels;
+                document.getElementById('info-memtotal').innerHTML = data.MemTotal;
+                document.getElementById('info-memorylimit').innerHTML = data.MemoryLimit;
+                document.getElementById('info-ncpu').innerHTML = data.NCPU;
+                document.getElementById('info-neventslistener').innerHTML = data.NEventsListener;
+                document.getElementById('info-nfd').innerHTML = data.NFd;
+                document.getElementById('info-ngoroutines').innerHTML = data.NGoroutines;
+                document.getElementById('info-name').innerHTML = data.Name;
+                document.getElementById('info-operatingsystem').innerHTML = data.OperatingSystem;
+                document.getElementById('info-registryconfig').innerHTML = registryConfig;
+                document.getElementById('info-swaplimit').innerHTML = data.SwapLimit;
+                document.getElementById('info-systemtime').innerHTML = data.SystemTime;
+            })
+        .fail(function( jqxhr, textStatus, error ) {
+            var err = textStatus + ", " + error;
+            console.log( "Request Failed: " + err );
+        })
+        ;
+    }
+
+    loadInfoTab();
 
   })
 ;

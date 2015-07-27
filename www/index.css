@@ -132,3 +132,13 @@ html {
     display: none;
   }
 }
+
+
+/*--------------
+    Data Lists
+---------------*/
+
+.props-list {
+    font-weight: bold;
+}
+
