@@ -1,4 +1,60 @@
+/*
+ * Json functions
+ */
 
+function renderJson(json) {
+    var html = '';
+    for (var k in json) {
+        html += '<b>' + k + ': </b>';
+        if (json.hasOwnProperty(k)) {
+            var ktype = typeof json[k];
+            switch (ktype) {
+                case 'string':
+                    if (json[k] === '') {
+                        html += '-';
+                    } else {
+                        html += json[k];
+                    }
+                    break;
+                case 'number':
+                    html += json[k];
+                    break;
+                case 'boolean':
+                    html += json[k];
+                    break;
+                case 'object':
+                    var child = renderJson(json[k]);
+                    if (child !== '') {
+                        html += '<br />';
+                        html += '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+                        html += '<span style="display: inline-block; border:solid 0px #ffffff;">';
+                        html += child;
+                        html += '</span>';
+                    } else {
+                        html += '-';
+                    }
+                    break;
+                case 'undefined':
+                    html += '<i>Undefined.</i>';
+                    break;
+                default:
+                    if (json[k] instanceof Array) {
+                        html += renderJson(json[k]);
+                    } else {
+                        html += '<i>Unkown data type</i>';
+                    }
+                    break;
+            }
+            html += '<br />';
+        }
+    }
+    return html;
+}
+
+
+/*
+ * Date/time functions
+ */
 
 function convertUnixTime(unix_timestamp) {
     var date = new Date(unix_timestamp*1000);
@@ -14,6 +70,33 @@ function convertUnixTime(unix_timestamp) {
     //return formattedTime;
     return date;
 }
+
+
+/*
+ * Button functions
+ */
+
+function buildButton(title, icon) {
+    var btn = $('<button />')
+        .attr({ class: 'ui small compact basic icon button' })
+        .attr({ title: title })
+        ;
+    btn = 
+        $('<span />').attr({ style:'margin-left:5px' })
+        .append(
+                $(btn)
+                .append(
+                    $('<i />').attr({ class: icon })
+                    )
+               )
+        ;
+    return btn;
+}
+
+
+/*
+ * Tables functions
+ */
 
 function Table() {
     this.table;

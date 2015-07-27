@@ -75,10 +75,9 @@ $(document)
             var td = tr.insertCell();
             td.appendChild(document.createTextNode(data[i].RepoDigests));
         }
-        //el.appendChild(tbl);
         $('#table-list > tbody > tr').each( function() {
             var td = $('td:eq(0)', this)[0];
-            var val = td.innerText;
+            var val = td.textContent;
             var abbr = val.substring(0, 11);
             var link = document.createElement('a');
             var linkText = document.createTextNode(abbr);
@@ -87,19 +86,10 @@ $(document)
             link.appendChild(linkText);
             td.innerHTML = '';  // Clear cell first.
             td.appendChild(link);
-            //var historyImage = 
-            // $('<img />').attr({
-            //       src:'some image url',
-            //       width:'width in integer',
-            //       height:'integer'
-            // }).appendTo($('<a />').attr({
-            //       href:'somelink'
-            // }).appendTo($('#someElement')));
 
-            var historyBtn = $('<button />')
-                .attr({ class:'ui small compact basic icon button' })
-                .attr({ title:'History' })
-            ;
+            var historyBtn = buildButton('History', 'history icon');
+            $(td).append($(historyBtn));
+
             $(historyBtn).click( function() {
                 $('#tab-history-message').text('');
                 var t = document.getElementById('table-history');
@@ -126,25 +116,17 @@ $(document)
                 })
             });
 
-            $(td)
-                .append(
-                    $('<span />').attr({ style:'margin-left:5px' })
-                .append(
-                    $(historyBtn)
-                .append(
-                    $('<i />').attr({ class:'history icon' })
-                )))
-            ;
-
             $(link).click( function() {
                     //$('#menu-tabs #menu-tabs-inspect').click();
-                    $('#tab-inspect').modal('show');
                     // Get inspect data.
                     $.getJSON('/images/inspect/' + val, function() {
                             //console.log('requested');
                         })
                         .done(function(data) {
-                            $('#tab-inspect #results').text(JSON.stringify(data));
+                            //$('#tab-inspect #results').text(JSON.stringify(data));
+                            var html = renderJson(data);
+                            $('#tab-inspect #results').html(html);
+                            $('#tab-inspect').modal('show');
                         })
                         .fail(
                             function( jqxhr, textStatus, error ) {
@@ -180,7 +162,7 @@ $(document)
         })
     ;
 
-    var validationRules = {
+    var searchValidationRules = {
         'tab-search-text': {
             identifier: 'tab-search-text', 
             rules: [
@@ -192,7 +174,7 @@ $(document)
         }
     };
 
-    $('.ui.form').form( validationRules , { inline: true,  onSuccess: function() {
+    $('.ui.form').form(searchValidationRules, { inline: true,  onSuccess: function() {
             $('.ui.dimmer').dimmer('show');
             var term = $('#tab-search-text').val();
             $.getJSON('/images/search/' + term)

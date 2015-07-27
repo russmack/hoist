@@ -71,7 +71,7 @@ $(document)
         }
         $('#table-list > tbody > tr').each( function() {
             var td = $('td:eq(0)', this)[0];
-            var val = td.innerText;
+            var val = td.textContent;
             var abbr = val.substring(0, 11);
             var link = document.createElement('a');
             var linkText = document.createTextNode(abbr);
@@ -255,23 +255,6 @@ $(document)
             );
         });
 
-    }
-
-    function buildButton(title, icon) {
-        var btn = $('<button />')
-            .attr({ class: 'ui small compact basic icon button' })
-            .attr({ title: title })
-            ;
-        btn = 
-            $('<span />').attr({ style:'margin-left:5px' })
-            .append(
-                    $(btn)
-                    .append(
-                        $('<i />').attr({ class: icon })
-                        )
-                   )
-            ;
-        return btn;
     }
 
     function renderTopData(data) {
