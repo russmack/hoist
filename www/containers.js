@@ -174,16 +174,18 @@ $(document)
             });
 
             var startBtn = buildButton('Start', 'play icon');
-            // Disable until post requests implemented.
-            //$(td).append($(startBtn));
-            /*
+            $(td).append($(startBtn));
+     
             $(startBtn).click( function() {
                 $('#tab-start').modal('show');
                 $.getJSON('/containers/start/' + val, function() {
                         //console.log('requested');
                 })
                 .done(function(data) {
-                     $('#tab-start #results').text(JSON.stringify(data));
+                    var statusCode = data.StatusCode;
+                    $('#tab-start #results').text('Response status code: ' + statusCode);
+                    $('#table-list-body').empty();
+                    loadContainerList();
                 })
                 .fail(
                     function( jqxhr, textStatus, error ) {
@@ -192,18 +194,20 @@ $(document)
                     }
                 )
             });
-            */
+
             var stopBtn = buildButton('Stop', 'stop icon');
-            // Disabled until post requests implemented.
-            //$(td).append($(stopBtn));
-            /*
+            $(td).append($(stopBtn));
+
             $(stopBtn).click( function() {
                 $('#tab-stop').modal('show');
                 $.getJSON('/containers/stop/' + val, function() {
                         //console.log('requested');
                 })
                 .done(function(data) {
-                     $('#tab-stop #results').text(JSON.stringify(data));
+                    var statusCode = data.StatusCode;
+                    $('#tab-stop #results').text('Response status code: ' + statusCode);
+                    $('#table-list-body').empty();
+                    loadContainerList();
                 })
                 .fail(
                     function( jqxhr, textStatus, error ) {
@@ -212,7 +216,7 @@ $(document)
                     }
                 )
             });
-            */
+
             var historyBtn = buildButton('Logs', 'history icon');
             // Disabled containers logs button, until stream response understood.
             //$(td).append($(historyBtn));

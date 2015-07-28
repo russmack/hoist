@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/julienschmidt/httprouter"
@@ -167,12 +168,12 @@ func containerChanges(cfg Config, containerId string) string {
 
 func containerStart(cfg Config, containerId string) string {
 	uri := fmt.Sprintf("%s/containers/%s/start", cfg.Addr, containerId)
-	return getHttpString(uri)
+	return postHttp(uri, "")
 }
 
 func containerStop(cfg Config, containerId string) string {
 	uri := fmt.Sprintf("%s/containers/%s/stop", cfg.Addr, containerId)
-	return getHttpString(uri)
+	return postHttp(uri, "")
 }
 
 func containerDelete(cfg Config, containerId string) string {
@@ -299,6 +300,59 @@ func getHttpString(uri string) string {
 		defer resp.Body.Close()
 		status = resp.StatusCode
 	}
+	body := ""
+	if status == 200 {
+		bodyBuf, err := lib.ReadHttpResponseBody(resp)
+		if err != nil {
+			fmt.Println("err reading body:", err)
+			bodyStr := "{ \"success\": false, \"error\": \"" + err.Error() + "\" }"
+			bodyBuf = []byte(bodyStr)
+		}
+		body = string(bodyBuf)
+	} else {
+		b, err := json.Marshal(resp)
+		if err != nil {
+			body = "{ success: false, error: '" + err.Error() + "' }"
+		} else {
+			body = string(b)
+		}
+	}
+	fmt.Println("Body:", body)
+	return body
+}
+
+func postHttp(uri string, data string) string { // TODO: change 'data' type.
+
+	fmt.Println("Dialing...   for delete")
+
+	tlsConfig, err := lib.GetTLSConfig(nil, cfg.SslCert, cfg.SslKey)
+	if err != nil {
+		log.Fatal("Error getting TLS config.", err)
+	}
+	tlsConfig.InsecureSkipVerify = true
+
+	transport := http.Transport{
+		Dial:                  lib.DialTimeout,
+		TLSClientConfig:       tlsConfig,
+		ResponseHeaderTimeout: time.Second * 45,
+	}
+	status := 0
+	client := http.Client{
+		Transport: &transport,
+	}
+	postBody := bytes.NewBuffer([]byte(data))
+	req, err := http.NewRequest("POST", uri, postBody)
+	if err != nil {
+		log.Fatal("Error creating new POST request.")
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatal("Error getting http resource.", err)
+	} else {
+		defer resp.Body.Close()
+		status = resp.StatusCode
+	}
+
 	body := ""
 	if status == 200 {
 		bodyBuf, err := lib.ReadHttpResponseBody(resp)
