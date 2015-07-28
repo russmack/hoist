@@ -88,6 +88,8 @@ func containersEndpointsHandler(w http.ResponseWriter, r *http.Request, ps httpr
 		fmt.Fprintf(w, containerStart(cfg, ps.ByName("id")))
 	case "stop":
 		fmt.Fprintf(w, containerStop(cfg, ps.ByName("id")))
+	case "restart":
+		fmt.Fprintf(w, containerRestart(cfg, ps.ByName("id")))
 	case "delete":
 		fmt.Fprintf(w, containerDelete(cfg, ps.ByName("id")))
 	}
@@ -173,6 +175,11 @@ func containerStart(cfg Config, containerId string) string {
 
 func containerStop(cfg Config, containerId string) string {
 	uri := fmt.Sprintf("%s/containers/%s/stop", cfg.Addr, containerId)
+	return postHttp(uri, "")
+}
+
+func containerRestart(cfg Config, containerId string) string {
+	uri := fmt.Sprintf("%s/containers/%s/restart", cfg.Addr, containerId)
 	return postHttp(uri, "")
 }
 

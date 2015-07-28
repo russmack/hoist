@@ -83,8 +83,32 @@ $(document)
             var br = document.createElement('br');
             td.appendChild(br);
 
+            /*
+             * Added buttons to table.
+             */
+
             var topBtn = buildButton('Top (list processes)', 'browser icon');
             $(td).append($(topBtn));
+
+            var changesBtn = buildButton('Filesystem changes', 'write square icon');
+            $(td).append($(changesBtn));
+
+            var deleteBtn = buildButton('Delete', 'remove square icon');
+            $(td).append($(deleteBtn));
+
+            var startBtn = buildButton('Start', 'play icon');
+            $(td).append($(startBtn));
+     
+            var stopBtn = buildButton('Stop', 'stop icon');
+            $(td).append($(stopBtn));
+
+            var restartBtn = buildButton('Restart', 'refresh icon');
+            $(td).append($(restartBtn));
+
+
+            /*
+             * Bind handlers to buttons.
+             */
 
             $(topBtn).click( function() {
                 $.getJSON('/containers/top/' + val, function() {
@@ -119,9 +143,6 @@ $(document)
                 )
             });
             */
-            var changesBtn = buildButton('Filesystem changes', 'write square icon');
-            $(td).append($(changesBtn));
-
             $(changesBtn).click( function() {
                 $('#tab-changes-message').text('');
                 var t = document.getElementById('table-changes');
@@ -151,9 +172,6 @@ $(document)
             });
 
             
-            var deleteBtn = buildButton('Delete', 'remove square icon');
-            $(td).append($(deleteBtn));
-
             $(deleteBtn).click( function() {
                 $('#tab-delete').modal('show');
                 $.getJSON('/containers/delete/' + val, function() {
@@ -173,9 +191,6 @@ $(document)
                 )
             });
 
-            var startBtn = buildButton('Start', 'play icon');
-            $(td).append($(startBtn));
-     
             $(startBtn).click( function() {
                 $('#tab-start').modal('show');
                 $.getJSON('/containers/start/' + val, function() {
@@ -195,9 +210,6 @@ $(document)
                 )
             });
 
-            var stopBtn = buildButton('Stop', 'stop icon');
-            $(td).append($(stopBtn));
-
             $(stopBtn).click( function() {
                 $('#tab-stop').modal('show');
                 $.getJSON('/containers/stop/' + val, function() {
@@ -216,6 +228,26 @@ $(document)
                     }
                 )
             });
+
+            $(restartBtn).click( function() {
+                $('#tab-restart').modal('show');
+                $.getJSON('/containers/restart/' + val, function() {
+                        //console.log('requested');
+                })
+                .done(function(data) {
+                    var statusCode = data.StatusCode;
+                    $('#tab-restart #results').text('Response status code: ' + statusCode);
+                    $('#table-list-body').empty();
+                    loadContainerList();
+                })
+                .fail(
+                    function( jqxhr, textStatus, error ) {
+                        var err = textStatus + ", " + error;
+                        console.log( "Request Failed: " + err );
+                    }
+                )
+            });
+
 
             var historyBtn = buildButton('Logs', 'history icon');
             // Disabled containers logs button, until stream response understood.
