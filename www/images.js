@@ -87,8 +87,20 @@ $(document)
             td.innerHTML = '';  // Clear cell first.
             td.appendChild(link);
 
+            /*
+             * Add buttons.
+             */
+
             var historyBtn = buildButton('History', 'history icon');
             $(td).append($(historyBtn));
+
+            var deleteBtn = buildButton('Delete', 'delete icon');
+            $(td).append($(deleteBtn));
+
+
+            /*
+             * Bind button event handlers.
+             */
 
             $(historyBtn).click( function() {
                 $('#tab-history-message').text('');
@@ -140,6 +152,27 @@ $(document)
                     ;
                 }
             );
+
+            $(deleteBtn).click( function() {
+                $('#tab-delete').modal('show');
+                $.getJSON('/images/delete/' + val, function() {
+                        //console.log('requested');
+                })
+                .done(function(data) {
+                    var statusCode = data.StatusCode;
+                    var html = renderJson(data);
+                    $('#tab-delete #results').html(html);
+                    $('#table-list-body').empty();
+                    loadImageList();
+                })
+                .fail(
+                    function( jqxhr, textStatus, error ) {
+                        var err = textStatus + ", " + error;
+                        console.log( "Request Failed: " + err );
+                    }
+                )
+            });
+            
         });
 
     }
@@ -148,11 +181,15 @@ $(document)
         .tab('change tab', 'tab-list')
     ;
 
-    $.getJSON("/images/list")
-        .done(function(data) {
-            tableCreate($("#results")[0], data);
-        })
-    ;
+    function loadImageList() {
+        $.getJSON("/images/list")
+            .done(function(data) {
+                tableCreate($("#results")[0], data);
+            })
+        ;
+    }
+
+    loadImageList();
 
     $('#menu-tabs-search')
         .on('click', function() {

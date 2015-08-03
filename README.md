@@ -2,7 +2,6 @@
 
 Lightweight container orchestration
 
-![Progress](http://progressed.io/bar/1?title=pre-alpha)
 [![Build Status](https://travis-ci.org/russmack/hoist.svg?branch=master)](https://travis-ci.org/russmack/hoist)
 
 ---
@@ -21,6 +20,7 @@ go run main.go
 - [X] List
 - [X] Inspect
 - [X] History
+- [X] Delete
 - [X] Search
 
 #### Containers
@@ -28,12 +28,16 @@ go run main.go
 - [X] Inspect
 - [X] Top
 - [X] Changes
+- [X] Start
+- [X] Stop
+- [X] Restart
 - [X] Delete
 
 #### Monitor
 - [X] Info
 - [X] Version
 - [X] Ping
+- [X] Events
 
 ## License
 BSD 3-Clause: [LICENSE.txt](LICENSE.txt)

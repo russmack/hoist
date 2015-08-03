@@ -2,9 +2,11 @@ package main
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"github.com/julienschmidt/httprouter"
+	_ "github.com/mattn/go-sqlite3"
 	lib "github.com/russmack/hoist/lib"
 	"log"
 	"net/http"
@@ -68,6 +70,8 @@ func imagesEndpointsHandler(w http.ResponseWriter, r *http.Request, ps httproute
 		fmt.Fprintf(w, imageHistory(cfg, ps.ByName("id")))
 	case "search":
 		fmt.Fprintf(w, imageSearch(cfg, ps.ByName("id")))
+	case "delete":
+		fmt.Fprintf(w, imageDelete(cfg, ps.ByName("id")))
 	}
 }
 func containersEndpointsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -133,6 +137,11 @@ func imageHistory(cfg Config, imageId string) string {
 func imageSearch(cfg Config, term string) string {
 	uri := fmt.Sprintf("%s/images/search?term=%s", cfg.Addr, term)
 	return getHttpString(uri)
+}
+
+func imageDelete(cfg Config, imageId string) string {
+	uri := fmt.Sprintf("%s/images/%s", cfg.Addr, imageId)
+	return deleteHttp(uri)
 }
 
 func containerList(cfg Config) string {
@@ -497,4 +506,103 @@ func getHttpStream(uri string, eChan chan Event) {
 			fmt.Println("event enqueued")
 		}
 	}(res, &client)
+}
+
+func selectRows(dbName string, tableName string, maxRows string) {
+	db, err := sql.Open("sqlite3", dbName)
+	if err != nil {
+		fmt.Println("Error: unable to open database: " + err.Error())
+		os.Exit(1)
+	}
+	defer db.Close()
+
+	stmt, err := db.Prepare("select * from " + tableName + " limit " + maxRows)
+	//stmt, err := db.Prepare("select * from ? limit ?")
+	if err != nil {
+		fmt.Println("Error: unable to prepare query: " + err.Error())
+		os.Exit(1)
+	}
+	defer stmt.Close()
+
+	//rows, err := stmt.Query(maxRows, dbName)
+	rows, err := stmt.Query()
+	//rows, err := stmt.Exec(maxRows, dbName)
+	if err != nil {
+		fmt.Println("Error: unable to execute query: " + err.Error())
+		os.Exit(1)
+	}
+	defer rows.Close()
+
+	/*
+		for rows.Next() {
+			var itunesId int
+			var leadUrl string
+			var url string
+			var json string
+			rows.Scan(&itunesId, &leadUrl, &url, &json)
+			fmt.Println(itunesId)
+			fmt.Println(leadUrl)
+			fmt.Println(url)
+			fmt.Println(json)
+			fmt.Println("=============================================================================================")
+		}
+	*/
+}
+
+var dbFilename = "hosts.db"
+
+//func createHostsTable() {
+//	createDbTable()
+//}
+
+func createDbTable() {
+	db, err := sql.Open("sqlite3", dbFilename)
+	if err != nil {
+		fmt.Println("Error: unable to open database: " + err.Error())
+		os.Exit(1)
+	}
+	defer db.Close()
+
+	stmtCreate := ` 
+		        create table Hosts ( 
+		            Address text not null, 
+		            Name text, 
+		            Description text, 
+		            CreatedDate text 
+		        );
+				`
+	_, err = db.Exec(stmtCreate)
+	if err != nil {
+		fmt.Println("Error: unable to create database table: " + err.Error())
+		os.Exit(1)
+	}
+}
+
+func storeHost(address string, name string, description string, createdDate string) {
+	db, err := sql.Open("sqlite3", dbFilename)
+	if err != nil {
+		fmt.Println("Error: unable to open database: " + err.Error())
+		os.Exit(1)
+	}
+	defer db.Close()
+
+	tx, err := db.Begin()
+	if err != nil {
+		fmt.Println("Error: unable to being transaction: " + err.Error())
+		os.Exit(1)
+	}
+
+	stmt, err := tx.Prepare("insert into Hosts(Address, Name, Description, CreatedDate) values (?, ?, ?, ?)")
+	if err != nil {
+		fmt.Println("Error: unable to prepare transaction statement: " + err.Error())
+		os.Exit(1)
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(address, name, description, createdDate)
+	if err != nil {
+		fmt.Println("Error: unable to insert database record: " + err.Error())
+		os.Exit(1)
+	}
+	tx.Commit()
 }
