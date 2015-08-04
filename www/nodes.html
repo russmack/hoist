@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- Standard Meta -->
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+
+  <!-- Site Properities -->
+  <title>Hoist</title>
+
+  <link rel="stylesheet" type="text/css" href="static/semantic-ui/dist/semantic.css">
+  <link rel="stylesheet" type="text/css" href="static/index.css">
+
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.js"></script>
+  <script src="static/semantic-ui/dist/semantic.js"></script>
+  <script src="static/nodes.js"></script>
+  <script src="static/utils.js"></script>
+
+</head>
+<body id="home">
+  <div class="ui inverted masthead segment">
+    <div class="ui page grid">
+      <div class="column">
+        <div class="ui inverted blue menu">
+            <div class="header item"><a href="index.html">Hoist</a></div>
+          <div class="right menu">
+            <div class="ui mobile dropdown link item">
+              Menu
+              <i class="dropdown icon"></i>
+              <div class="menu">
+                <a class="item" href="images.html">Images</a>
+                <a class="item" href="containers.html">Containers</a>
+                <a class="item">Community</a>
+              </div>
+            </div>
+            <div class="ui dropdown link item">
+              Manage
+              <i class="dropdown icon"></i>
+              <div class="menu">
+                <a class="item" href="images.html">Images</a>
+                <a class="item" href="containers.html">Containers</a>
+                <a class="item">SSH</a>
+              </div>
+            </div>
+            <a class="item" href="monitor.html">Monitor</a>
+            <a class="item">Community</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="ui secondary pointing menu" id="menu-tabs">
+      <a class="item" data-tab="tab-list" id="menu-tabs-list">
+          List
+      </a>
+      <!--
+      <a class="item" data-tab="menu-tabs-search" id="menu-tabs-search">
+          Search
+      </a>
+      -->
+      <!--
+      <div class="right menu">
+          <a class="ui item">
+              Logout
+          </a>
+      </div>
+      -->
+  </div>
+  <div class="ui tab segment active" data-tab="tab-list" id="tab-list">
+      <div id="results">
+          <table class="ui celled table" id="table-list">
+              <thead>
+                  <tr>
+                      <th>Id</th>
+                      <th>Name</th>
+                      <th>Address</th>
+                      <th>Description</th>
+                      <th>Created Date</th>
+                  </tr>
+              </thead>
+              <tbody>
+              </tbody>
+          </table>
+      </div>
+  </div>
+  <div class="ui basic modal" data-tab="tab-inspect" id="tab-inspect">
+      <div id="results"></div>
+  </div>
+  <div class="ui basic modal" data-tab="tab-history" id="tab-history">
+      <div class="header">
+          Image History
+      </div>
+      <div id="tab-history-message"></div>
+      <div id="results" class="content">
+        <table class="ui very compact striped inverted table" id="table-history">
+            <thead></thead>
+            <tbody id="table-history-body"></tbody>
+        </table>
+      </div>
+  </div>
+  <div class="ui tab segment" data-tab="tab-search" id="tab-search">
+      <div class="ui form segment success">
+          <div class="field">
+              <label>Enter image name to search for:</label>
+              <input type="text" id="tab-search-text" name="tab-search-text" placeholder="Search..." autofocus autocomplete="off">
+          </div>
+          <button class="ui submit button" id="tab-search-button">Search</button>
+          <div class="ui page dimmer"><div class="ui text loader">Searching...</div></div>
+      </div>
+  </div>
+  <div class="ui basic long modal" data-tab="tab-search-results" id="tab-search-results">
+      <div class="header">Search results</div>
+      <div class="ui basic modal" id="tab-search-results-modal-message">
+        <div id="tab-search-results-message"></div>
+      </div>
+      <div id="results">
+        <table class="ui very compact striped inverted table" id="table-search-results">
+            <thead></thead>
+            <tbody id="table-search-results-body"></tbody>
+        </table>
+      </div>
+  </div>
+
+
+  <div class="ui basic modal small" data-tab="tab-delete" id="tab-delete">
+      <!--<i class="close icon"></i>-->
+      <div class="header">
+          Delete Image
+      </div>
+      <div class="image content">
+          <div class="image">
+              <i class="trash outline icon"></i>
+          </div>
+          <div class="description">
+              <p>The image has been deleted.</p>
+          </div>
+      </div>
+      <div id="results" class="content"></div>
+      <div class="actions">
+          <div class="one fluid ui inverted buttons">
+              <div class="ui green basic inverted button">
+                  <i class="checkmark icon"></i>
+                  OK
+              </div>
+          </div>
+      </div>
+  </div>
+
+
+<!--
+  <div class="ui grid">
+      <div class="four wide column">
+          <div class="ui vertical fluid tabular menu">
+              <a class="active item">
+                  List
+              </a>
+              <a class="item">
+                  Inspect
+              </a>
+              <a class="item">
+                  Search
+              </a>
+              <a class="item">
+                  Remove
+              </a>
+          </div>
+      </div>
+      <div class="twelve wide stretched column">
+          <div class="ui segment">
+              This is an stretched grid column. This segment will always match the tab height
+          </div>
+      </div>
+  </div>
+  -->
+
+  <div class="ui inverted footer vertical segment">
+    <div class="ui stackable center aligned page grid">
+      <div class="ten wide column">
+        <div class="ui three column center aligned stackable grid">
+          <div class="column">
+            <h5 class="ui inverted header">Courses</h5>
+            <div class="ui inverted link list">
+              <a class="item">Registration</a>
+              <a class="item">Course Calendar</a>
+              <a class="item">Professors</a>
+            </div>
+          </div>
+          <div class="column">
+            <h5 class="ui inverted header">Library</h5>
+            <div class="ui inverted link list">
+              <a class="item">A-Z</a>
+              <a class="item">Most Popular</a>
+              <a class="item">Recently Changed</a>
+            </div>
+          </div>
+          <div class="column">
+            <h5 class="ui inverted header">Community</h5>
+            <div class="ui inverted link list">
+              <a class="item">BBS</a>
+              <a class="item">Careers</a>
+              <a class="item">Privacy Policy</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="six wide column">
+        <h5 class="ui inverted header">Contact Us</h5>
+        <addr>
+          22 Acacia Avenue <br>
+          Chiswick, London <br>
+        </addr>
+        <p>(44) 123-4567</p>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
