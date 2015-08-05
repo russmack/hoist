@@ -183,7 +183,7 @@ $(document)
     ;
 
     function loadNodeList() {
-        $.getJSON("/nodess/list")
+        $.getJSON("/nodes/list")
             .done(function(data) {
                 tableCreate($("#results")[0], data);
             })

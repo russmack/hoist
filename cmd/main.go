@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"database/sql"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/julienschmidt/httprouter"
@@ -27,25 +28,54 @@ type Image struct {
 }
 
 const (
-	rootPath = "../www/"
+	rootPath   = "../www/"
+	dbFilename = "hoist.db"
 )
+
+func init() {
+	db := NewDatabase(dbFilename)
+	db.Init()
+}
 
 func main() {
 	initConfig()
 	router := httprouter.New()
+	router.HandlerFunc("GET", "/offline.appcache", appcacheHandler)
+	router.HandlerFunc("GET", "/favicon.ico", faviconHandler)
+	router.HandlerFunc("GET", "/", indexHandler)
 	router.HandlerFunc("GET", "/index.html", indexHandler)
 	router.HandlerFunc("GET", "/images.html", imagesHandler)
 	router.HandlerFunc("GET", "/containers.html", containersHandler)
+	router.HandlerFunc("GET", "/nodes.html", nodesHandler)
 	router.HandlerFunc("GET", "/monitor.html", monitorHandler)
-	router.GET("/images/:endpoint", imagesEndpointsHandler)
-	router.GET("/images/:endpoint/:id", imagesEndpointsHandler)
-	router.GET("/containers/:endpoint", containersEndpointsHandler)
-	router.GET("/containers/:endpoint/:id", containersEndpointsHandler)
-	router.GET("/monitor/:endpoint", monitorEndpointsHandler)
-	router.HandlerFunc("GET", "/", indexHandler)
+	router.GET("/images/:endpoint", imagesGetHandler)
+	router.GET("/images/:endpoint/:id", imagesGetHandler)
+	router.GET("/containers/:endpoint", containersGetHandler)
+	router.GET("/containers/:endpoint/:id", containersGetHandler)
+	router.GET("/nodes/:endpoint", nodesGetHandler)
+	router.GET("/monitor/:endpoint", monitorGetHandler)
+	router.POST("/nodes", nodesPostHandler)
 	router.ServeFiles("/static/*filepath", http.Dir(rootPath))
 
-	log.Fatal(http.ListenAndServe(":8100", router))
+	fmt.Println("Starting server on port 8100...")
+	go log.Fatal(http.ListenAndServe(":8100", router))
+	fmt.Println("Started.")
+	done := make(chan bool)
+	<-done
+}
+
+func appcacheHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("content-type", "text/cache-manifest")
+	http.ServeFile(w, r, path.Join(rootPath, "offline.appcache"))
+}
+func faviconHandler(w http.ResponseWriter, r *http.Request) {
+	body, err := base64.StdEncoding.DecodeString(faviconBase64)
+	if err != nil {
+		fmt.Println("favicon handler decoding error:", err)
+		return
+	}
+	w.Header().Set("content-type", "image/x-icon")
+	w.Write(body)
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
@@ -57,10 +87,13 @@ func imagesHandler(w http.ResponseWriter, r *http.Request) {
 func containersHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, path.Join(rootPath, "containers.html"))
 }
+func nodesHandler(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, path.Join(rootPath, "nodes.html"))
+}
 func monitorHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, path.Join(rootPath, "monitor.html"))
 }
-func imagesEndpointsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func imagesGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	switch ps.ByName("endpoint") {
 	case "list":
 		fmt.Fprintf(w, imageList(cfg))
@@ -74,7 +107,7 @@ func imagesEndpointsHandler(w http.ResponseWriter, r *http.Request, ps httproute
 		fmt.Fprintf(w, imageDelete(cfg, ps.ByName("id")))
 	}
 }
-func containersEndpointsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func containersGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	switch ps.ByName("endpoint") {
 	case "list":
 		fmt.Fprintf(w, containerList(cfg))
@@ -98,10 +131,26 @@ func containersEndpointsHandler(w http.ResponseWriter, r *http.Request, ps httpr
 		fmt.Fprintf(w, containerDelete(cfg, ps.ByName("id")))
 	}
 }
+func nodesGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	switch ps.ByName("endpoint") {
+	case "list":
+		fmt.Fprintf(w, nodeList(cfg))
+	}
+}
+func nodesPostHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	node := &Node{}
+	err := json.NewDecoder(r.Body).Decode(node)
+	if err != nil {
+		//fmt.Println("Unable to decode json node post.", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	fmt.Fprintf(w, nodeAdd(cfg, node))
+}
 
 type Response map[string]interface{}
 
-func monitorEndpointsHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func monitorGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	switch ps.ByName("endpoint") {
 	case "info":
 		fmt.Fprintf(w, monitorInfo(cfg))
@@ -195,6 +244,32 @@ func containerRestart(cfg Config, containerId string) string {
 func containerDelete(cfg Config, containerId string) string {
 	uri := fmt.Sprintf("%s/containers/%s", cfg.Addr, containerId)
 	return deleteHttp(uri)
+}
+
+func nodeList(cfg Config) string {
+	//db := NewNodesDataStore(dbFilename)
+	db := NewDatabase(dbFilename)
+	nodesDb := NewNodesDataStore(db)
+	nodes := nodesDb.GetNodes()
+	b, err := json.Marshal(nodes)
+	if err != nil {
+		fmt.Println(err)
+		return "err occurred"
+	}
+	return string(b)
+}
+func nodeAdd(cfg Config, h *Node) string {
+	db := NewDatabase(dbFilename)
+	nodesDb := NewNodesDataStore(db)
+	node, err := nodesDb.AddNode(h)
+	if err != nil {
+		return fmt.Sprintf("Unable to add node.", err)
+	}
+	json, err := json.Marshal(node)
+	if err != nil {
+		return fmt.Sprintf("Unable to marshal new node json.", err)
+	}
+	return string(json)
 }
 
 func monitorInfo(cfg Config) string {
@@ -508,7 +583,11 @@ func getHttpStream(uri string, eChan chan Event) {
 	}(res, &client)
 }
 
-func selectRows(dbName string, tableName string, maxRows string) {
+func (d *NodesDataStore) GetNodes() []Node {
+	return selectRows(d.Db.DbName, "Nodes", "50")
+}
+
+func selectRows(dbName string, tableName string, maxRows string) []Node {
 	db, err := sql.Open("sqlite3", dbName)
 	if err != nil {
 		fmt.Println("Error: unable to open database: " + err.Error())
@@ -532,77 +611,135 @@ func selectRows(dbName string, tableName string, maxRows string) {
 		os.Exit(1)
 	}
 	defer rows.Close()
-
-	/*
-		for rows.Next() {
-			var itunesId int
-			var leadUrl string
-			var url string
-			var json string
-			rows.Scan(&itunesId, &leadUrl, &url, &json)
-			fmt.Println(itunesId)
-			fmt.Println(leadUrl)
-			fmt.Println(url)
-			fmt.Println(json)
-			fmt.Println("=============================================================================================")
+	nodes := []Node{}
+	for rows.Next() {
+		var id int
+		var name string
+		var address string
+		var description string
+		var created string
+		rows.Scan(&id, &name, &address, &description, &created)
+		node := &Node{
+			Id:          id,
+			Name:        name,
+			Address:     address,
+			Description: description,
+			Created:     created,
 		}
-	*/
+		nodes = append(nodes, *node)
+	}
+	return nodes
 }
 
-var dbFilename = "hosts.db"
+type Node struct {
+	Id          int
+	Name        string
+	Address     string
+	Description string
+	Created     string
+}
 
-//func createHostsTable() {
-//	createDbTable()
-//}
+type Database struct {
+	DbName string
+}
+type NodesDataStore struct {
+	//DbName string
+	Db *Database
+}
 
-func createDbTable() {
-	db, err := sql.Open("sqlite3", dbFilename)
+func NewDatabase(dbName string) *Database {
+	//func NewDatabase() *Database {
+	//return &Database{}
+	return &Database{DbName: dbName}
+}
+
+func NewNodesDataStore(db *Database) *NodesDataStore {
+	//func NewNodesDataStore(dbName string) *NodesDataStore {
+	//return &NodesDataStore{DbName: dbName}
+	return &NodesDataStore{Db: db}
+}
+
+func (d *NodesDataStore) CreateTable() {
+	stmt := ` 
+			create table if not exists Nodes ( 
+		        Address text not null, 
+		        Name text, 
+		        Description text, 
+		        CreatedDate text 
+		    );
+			`
+	//db := NewDatabase()
+	d.Db.CreateTable(stmt)
+}
+
+func (d *Database) Init() {
+	// Ensure tables exist.
+	nodesDb := NewNodesDataStore(d)
+	nodesDb.CreateTable()
+
+}
+
+func (d *Database) CreateTable(stmt string) {
+	db, err := sql.Open("sqlite3", d.DbName)
 	if err != nil {
 		fmt.Println("Error: unable to open database: " + err.Error())
 		os.Exit(1)
 	}
 	defer db.Close()
 
-	stmtCreate := ` 
-		        create table Hosts ( 
-		            Address text not null, 
-		            Name text, 
-		            Description text, 
-		            CreatedDate text 
-		        );
-				`
-	_, err = db.Exec(stmtCreate)
+	_, err = db.Exec(stmt)
 	if err != nil {
 		fmt.Println("Error: unable to create database table: " + err.Error())
 		os.Exit(1)
 	}
 }
 
-func storeHost(address string, name string, description string, createdDate string) {
-	db, err := sql.Open("sqlite3", dbFilename)
+func (d *NodesDataStore) AddNode(n *Node) (Node, error) {
+	db, err := sql.Open("sqlite3", d.Db.DbName)
 	if err != nil {
 		fmt.Println("Error: unable to open database: " + err.Error())
-		os.Exit(1)
+		return Node{}, err
 	}
 	defer db.Close()
 
 	tx, err := db.Begin()
 	if err != nil {
 		fmt.Println("Error: unable to being transaction: " + err.Error())
-		os.Exit(1)
+		return Node{}, err
 	}
 
-	stmt, err := tx.Prepare("insert into Hosts(Address, Name, Description, CreatedDate) values (?, ?, ?, ?)")
+	stmt, err := tx.Prepare("insert into Nodes(Address, Name, Description, CreatedDate) values (?, ?, ?, ?)")
 	if err != nil {
 		fmt.Println("Error: unable to prepare transaction statement: " + err.Error())
-		os.Exit(1)
+		return Node{}, err
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(address, name, description, createdDate)
+	r, err := stmt.Exec(n.Address, n.Name, n.Description, n.Created)
 	if err != nil {
 		fmt.Println("Error: unable to insert database record: " + err.Error())
-		os.Exit(1)
+		return Node{}, err
 	}
 	tx.Commit()
+	fmt.Printf("DB insert returned: %+v\n", r)
+	node := Node{}
+	/*
+		for rows.Next() {
+			var id int
+			var name string
+			var address string
+			var description string
+			var created string
+			rows.Scan(&id, &name, &address, &description, &created)
+			node := &Node{
+				Id:          id,
+				Name:        name,
+				Address:     address,
+				Description: description,
+				Created:     created,
+			}
+			nodes = append(nodes, *node)
+		}
+	*/
+	return node, nil
 }
