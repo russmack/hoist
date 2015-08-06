@@ -1,6 +1,7 @@
 $(document)
   .ready(function() {
 
+    /*
     var
       validationRules = {
         firstName: {
@@ -18,6 +19,7 @@ $(document)
         }
       }
     ;
+    */
 
     $('.ui.dropdown')
       .dropdown({
@@ -25,11 +27,13 @@ $(document)
       })
     ;
 
+    /*
     $('.ui.form')
       .form(validationRules, {
         on: 'blur'
       })
     ;
+    */
 
     $('.masthead .information')
       .transition('scale in', 1000)
@@ -46,7 +50,8 @@ $(document)
         {
             var tr = listBody.insertRow();
             var td = tr.insertCell();
-            var id = data[i].Id.substring(0, 11);
+            //var id = data[i].Id.substring(0, 11);
+            var id = data[i].Id;
             var idLink = data[i].Id;
             //var idLink = '<a href="images/inspect/' + data[i].Id  + '">' + id  + '</a>';
             //var idLink = '<a onclick=""' + data[i].Id  + '">' + id  + '</a>';
@@ -55,12 +60,13 @@ $(document)
             var td = tr.insertCell();
             td.appendChild(document.createTextNode(data[i].Name));
             var td = tr.insertCell();
-            var dt = convertUnixTime(data[i].Created);
-            td.appendChild(document.createTextNode(dt));
+            td.appendChild(document.createTextNode(data[i].Address));
             var td = tr.insertCell();
             td.appendChild(document.createTextNode(data[i].Description));
             var td = tr.insertCell();
-            td.appendChild(document.createTextNode(data[i].Address));
+            //var dt = convertUnixTime(data[i].Created);
+            var dt = data[i].Created;
+            td.appendChild(document.createTextNode(dt));
             var td = tr.insertCell();
             //var text = '';
             //if (data[i].Labels !== 'undefined' && data[i].Labels !== null)  {
@@ -103,6 +109,7 @@ $(document)
              * Bind button event handlers.
              */
 
+            /*
             $(historyBtn).click( function() {
                 $('#tab-history-message').text('');
                 var t = document.getElementById('table-history');
@@ -128,7 +135,8 @@ $(document)
                     $('#tab-history').modal('show');
                 })
             });
-
+            */
+            /*
             $(link).click( function() {
                     //$('#menu-tabs #menu-tabs-inspect').click();
                     // Get inspect data.
@@ -153,7 +161,8 @@ $(document)
                     ;
                 }
             );
-
+            */
+            /*
             $(deleteBtn).click( function() {
                 $('#tab-delete').modal('show');
                 $.getJSON('/images/delete/' + val, function() {
@@ -173,7 +182,7 @@ $(document)
                     }
                 )
             });
-            
+            */
         });
 
     }
@@ -185,13 +194,14 @@ $(document)
     function loadNodeList() {
         $.getJSON("/nodes/list")
             .done(function(data) {
-                tableCreate($("#results")[0], data);
+                tableCreate($("#tab-list #results")[0], data);
             })
         ;
     }
 
     loadNodeList();
 
+    /*
     $('#menu-tabs-search')
         .on('click', function() {
             $('#tab-search')
@@ -200,32 +210,81 @@ $(document)
         })
     ;
 
-    var searchValidationRules = {
-        'tab-search-text': {
-            identifier: 'tab-search-text', 
+    $('#menu-tabs-add')
+        .on('click', function() {
+            $('#tab-add')
+                .tab('change tab', 'tab-add')
+            ;
+        })
+    ;
+    */
+
+    var addNodeValidationRules = {
+        'tab-add-name-text': {
+            identifier: 'tab-add-name-text', 
             rules: [
             {
                 type: 'empty',
-                prompt: 'What would you like to search for?'
+                prompt: 'Give the node a name.'
+            }
+            ]
+        },
+        'tab-add-address-text': {
+            identifier: 'tab-add-address-text', 
+            rules: [
+            {
+                type: 'empty',
+                prompt: 'What\'s the IP address?'
+            }
+            ]
+        },
+        'tab-add-description-text': {
+            identifier: 'tab-add-description-text', 
+            rules: [
+            {
+                type: 'empty',
+                prompt: 'Give the node a description.'
             }
             ]
         }
+
     };
 
-    $('.ui.form').form(searchValidationRules, { inline: true,  onSuccess: function() {
+    $('#tab-add .ui.form').form(addNodeValidationRules, { inline: true,  onSuccess: function() {
             $('.ui.dimmer').dimmer('show');
-            var term = $('#tab-search-text').val();
-            $.getJSON('/images/search/' + term)
+            
+            var name = $('#tab-add-name-text').val();
+            var address = $('#tab-add-address-text').val();
+            var desc = $('#tab-add-description-text').val();
+            var node = {
+                'Name': name,
+                'Address': address,
+                'Description': desc
+            };
+            var postBody = JSON.stringify(node);
+            $.post('/nodes', postBody, function() { console.log('success') } )
                 .done(function(data) {
                     $('.ui.dimmer').dimmer('hide');
-                    $('#tab-search-results #results').text(renderSearchResults(data));
-                    $('#tab-search-results').modal('show');
+                    var statusCode = data.StatusCode;
+                    var html = renderJson(JSON.parse(data));
+                    $('#tab-add-added #results').html(html);
+                    $('#menu-tabs .item')
+                        .tab('change tab', 'tab-list')
+                    ;
+
+                    var t = document.getElementById('table-list');
+                    var tbl = new Table();
+                    tbl.create(t);
+                    tbl.clear();
+                    loadNodeList();
+                    $('#tab-add-added').modal('show');
                 })
                 .fail(function(jqxhr, textStatus, error) {
                     var err = textStatus + ", " + error;
                     console.log('Request Failed: ' + err);
                 })
             ;
+            
         }})
     ;
 

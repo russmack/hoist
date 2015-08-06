@@ -1,5 +1,8 @@
 <!DOCTYPE html>
 <html>
+<!--
+<html manifest="/offline.appcache">
+-->
 <head>
   <!-- Standard Meta -->
   <meta charset="utf-8" />
@@ -56,6 +59,9 @@
       <a class="item" data-tab="tab-list" id="menu-tabs-list">
           List
       </a>
+      <a class="item" data-tab="tab-add" id="menu-tabs-add">
+          Add
+      </a>
       <!--
       <a class="item" data-tab="menu-tabs-search" id="menu-tabs-search">
           Search
@@ -86,9 +92,52 @@
           </table>
       </div>
   </div>
+  <div class="ui tab segment" data-tab="tab-add" id="tab-add">
+      <div class="ui form segment success">
+          <div class="field">
+              <label>Name:</label>
+              <input type="text" id="tab-add-name-text" name="tab-add-name-text" placeholder="Name..." autofocus autocomplete="off">
+          </div>
+          <div class="field">
+              <label>Address:</label>
+              <input type="text" id="tab-add-address-text" name="tab-add-address-text" placeholder="Address..." autocomplete="off">
+          </div>
+          <div class="field">
+              <label>Description:</label>
+              <input type="text" id="tab-add-description-text" name="tab-add-description-text" placeholder="Description..." autocomplete="off">
+          </div>
+          <button class="ui submit button" id="tab-add-button">Add</button>
+          <div class="ui page dimmer"><div class="ui text loader">Adding...</div></div>
+      </div>
+  </div>
+  <div class="ui basic modal small" id="tab-add-added">
+      <div class="header">
+         Added Node 
+      </div>
+      <div class="image content">
+          <div class="image">
+              <i class="cube outline icon"></i>
+          </div>
+          <div class="description">
+              <p>The node has been added.</p>
+          </div>
+      </div>
+      <div id="results" class="content"></div>
+      <div class="actions">
+          <div class="one fluid ui inverted buttons">
+              <div class="ui green basic inverted button">
+                  <i class="checkmark icon"></i>
+                  OK
+              </div>
+          </div>
+      </div>
+  </div>
+  <!--
   <div class="ui basic modal" data-tab="tab-inspect" id="tab-inspect">
       <div id="results"></div>
   </div>
+  -->
+  <!--
   <div class="ui basic modal" data-tab="tab-history" id="tab-history">
       <div class="header">
           Image History
@@ -101,6 +150,8 @@
         </table>
       </div>
   </div>
+  -->
+  <!--
   <div class="ui tab segment" data-tab="tab-search" id="tab-search">
       <div class="ui form segment success">
           <div class="field">
@@ -111,6 +162,8 @@
           <div class="ui page dimmer"><div class="ui text loader">Searching...</div></div>
       </div>
   </div>
+  -->
+  <!--
   <div class="ui basic long modal" data-tab="tab-search-results" id="tab-search-results">
       <div class="header">Search results</div>
       <div class="ui basic modal" id="tab-search-results-modal-message">
@@ -123,10 +176,10 @@
         </table>
       </div>
   </div>
-
-
+  -->
+  <!--
   <div class="ui basic modal small" data-tab="tab-delete" id="tab-delete">
-      <!--<i class="close icon"></i>-->
+      <i class="close icon"></i>
       <div class="header">
           Delete Image
       </div>
@@ -148,7 +201,7 @@
           </div>
       </div>
   </div>
-
+  -->
 
 <!--
   <div class="ui grid">

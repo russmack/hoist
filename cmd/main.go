@@ -58,10 +58,7 @@ func main() {
 	router.ServeFiles("/static/*filepath", http.Dir(rootPath))
 
 	fmt.Println("Starting server on port 8100...")
-	go log.Fatal(http.ListenAndServe(":8100", router))
-	fmt.Println("Started.")
-	done := make(chan bool)
-	<-done
+	log.Fatal(http.ListenAndServe(":8100", router))
 }
 
 func appcacheHandler(w http.ResponseWriter, r *http.Request) {
@@ -138,14 +135,15 @@ func nodesGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 	}
 }
 func nodesPostHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	node := &Node{}
-	err := json.NewDecoder(r.Body).Decode(node)
+	var node Node
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&node)
 	if err != nil {
-		//fmt.Println("Unable to decode json node post.", err)
+		fmt.Println("Unable to decode json node post.", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	fmt.Fprintf(w, nodeAdd(cfg, node))
+	fmt.Fprintf(w, nodeAdd(cfg, &node))
 }
 
 type Response map[string]interface{}
@@ -247,7 +245,6 @@ func containerDelete(cfg Config, containerId string) string {
 }
 
 func nodeList(cfg Config) string {
-	//db := NewNodesDataStore(dbFilename)
 	db := NewDatabase(dbFilename)
 	nodesDb := NewNodesDataStore(db)
 	nodes := nodesDb.GetNodes()
@@ -259,6 +256,7 @@ func nodeList(cfg Config) string {
 	return string(b)
 }
 func nodeAdd(cfg Config, h *Node) string {
+	h.Created = time.Now().String()
 	db := NewDatabase(dbFilename)
 	nodesDb := NewNodesDataStore(db)
 	node, err := nodesDb.AddNode(h)
@@ -584,6 +582,7 @@ func getHttpStream(uri string, eChan chan Event) {
 }
 
 func (d *NodesDataStore) GetNodes() []Node {
+	// TODO: maxrows should not be hardcoded.
 	return selectRows(d.Db.DbName, "Nodes", "50")
 }
 
@@ -595,7 +594,7 @@ func selectRows(dbName string, tableName string, maxRows string) []Node {
 	}
 	defer db.Close()
 
-	stmt, err := db.Prepare("select * from " + tableName + " limit " + maxRows)
+	stmt, err := db.Prepare("select rowid, * from " + tableName + " limit " + maxRows)
 	//stmt, err := db.Prepare("select * from ? limit ?")
 	if err != nil {
 		fmt.Println("Error: unable to prepare query: " + err.Error())
@@ -603,9 +602,7 @@ func selectRows(dbName string, tableName string, maxRows string) []Node {
 	}
 	defer stmt.Close()
 
-	//rows, err := stmt.Query(maxRows, dbName)
 	rows, err := stmt.Query()
-	//rows, err := stmt.Exec(maxRows, dbName)
 	if err != nil {
 		fmt.Println("Error: unable to execute query: " + err.Error())
 		os.Exit(1)
@@ -613,14 +610,14 @@ func selectRows(dbName string, tableName string, maxRows string) []Node {
 	defer rows.Close()
 	nodes := []Node{}
 	for rows.Next() {
-		var id int
+		var rowid int
 		var name string
 		var address string
 		var description string
 		var created string
-		rows.Scan(&id, &name, &address, &description, &created)
+		rows.Scan(&rowid, &name, &address, &description, &created)
 		node := &Node{
-			Id:          id,
+			Id:          rowid,
 			Name:        name,
 			Address:     address,
 			Description: description,
@@ -643,19 +640,14 @@ type Database struct {
 	DbName string
 }
 type NodesDataStore struct {
-	//DbName string
 	Db *Database
 }
 
 func NewDatabase(dbName string) *Database {
-	//func NewDatabase() *Database {
-	//return &Database{}
 	return &Database{DbName: dbName}
 }
 
 func NewNodesDataStore(db *Database) *NodesDataStore {
-	//func NewNodesDataStore(dbName string) *NodesDataStore {
-	//return &NodesDataStore{DbName: dbName}
 	return &NodesDataStore{Db: db}
 }
 
@@ -665,10 +657,9 @@ func (d *NodesDataStore) CreateTable() {
 		        Address text not null, 
 		        Name text, 
 		        Description text, 
-		        CreatedDate text 
+		        Created text 
 		    );
 			`
-	//db := NewDatabase()
 	d.Db.CreateTable(stmt)
 }
 
@@ -676,7 +667,6 @@ func (d *Database) Init() {
 	// Ensure tables exist.
 	nodesDb := NewNodesDataStore(d)
 	nodesDb.CreateTable()
-
 }
 
 func (d *Database) CreateTable(stmt string) {
@@ -708,7 +698,7 @@ func (d *NodesDataStore) AddNode(n *Node) (Node, error) {
 		return Node{}, err
 	}
 
-	stmt, err := tx.Prepare("insert into Nodes(Address, Name, Description, CreatedDate) values (?, ?, ?, ?)")
+	stmt, err := tx.Prepare("insert into Nodes(Name, Address, Description, Created) values (?, ?, ?, ?)")
 	if err != nil {
 		fmt.Println("Error: unable to prepare transaction statement: " + err.Error())
 		return Node{}, err
@@ -721,8 +711,16 @@ func (d *NodesDataStore) AddNode(n *Node) (Node, error) {
 		return Node{}, err
 	}
 	tx.Commit()
-	fmt.Printf("DB insert returned: %+v\n", r)
-	node := Node{}
+	lastInsertedId, err := r.LastInsertId()
+	if err != nil {
+		return Node{}, err
+	}
+	node, err := d.GetNodeById(lastInsertedId)
+	if err != nil {
+		fmt.Println("Unable to GetNode.", err)
+		return Node{}, err
+	}
+
 	/*
 		for rows.Next() {
 			var id int
@@ -742,4 +740,27 @@ func (d *NodesDataStore) AddNode(n *Node) (Node, error) {
 		}
 	*/
 	return node, nil
+}
+
+func (d *NodesDataStore) GetNodeById(id int64) (Node, error) {
+	db, err := sql.Open("sqlite3", d.Db.DbName)
+	if err != nil {
+		fmt.Println("Error: unable to open database: " + err.Error())
+		return Node{}, err
+	}
+	defer db.Close()
+
+	stmt := "select rowid, * from Nodes where rowid = ?"
+	row := db.QueryRow(stmt, id)
+	var node Node
+	row.Scan(&node.Id, &node.Name, &node.Address, &node.Description, &node.Created)
+	switch {
+	case err == sql.ErrNoRows:
+		log.Println("No node with specified id.")
+	case err != nil:
+		log.Println("Unable to Get Node.", err)
+	default:
+		//
+	}
+	return node, err
 }
