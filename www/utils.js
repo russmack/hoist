@@ -142,9 +142,9 @@ Table.prototype.clearHeader = function() {
     }
 };
 Table.prototype.clearBody = function() {
-    var newtbody = document.createElement('tbody');
     var tbody = this.table.tBodies;
     if (tbody !== null) {
+        var newtbody = document.createElement('tbody');
         tbody[0].parentNode.replaceChild(newtbody, tbody[0]);
     }
 };

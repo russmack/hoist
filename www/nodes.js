@@ -1,39 +1,11 @@
 $(document)
   .ready(function() {
 
-    /*
-    var
-      validationRules = {
-        firstName: {
-          identifier  : 'email',
-          rules: [
-            {
-              type   : 'empty',
-              prompt : 'Please enter an e-mail'
-            },
-            {
-              type   : 'email',
-              prompt : 'Please enter a valid e-mail'
-            }
-          ]
-        }
-      }
-    ;
-    */
-
     $('.ui.dropdown')
       .dropdown({
         on: 'hover'
       })
     ;
-
-    /*
-    $('.ui.form')
-      .form(validationRules, {
-        on: 'blur'
-      })
-    ;
-    */
 
     $('.masthead .information')
       .transition('scale in', 1000)
@@ -42,8 +14,6 @@ $(document)
     // Function to create a table.
     function tableCreate(el, data)
     {
-        //var tbl  = document.createElement("table");
-        //var tbl = document.getElementById('table-list');
         var listBody = $('#table-list > tbody')[0];
 
         for (var i = 0; i < data.length; i++)
@@ -51,7 +21,7 @@ $(document)
             var tr = listBody.insertRow();
             var td = tr.insertCell();
             //var id = data[i].Id.substring(0, 11);
-            var id = data[i].Id;
+            //var id = data[i].Id;
             var idLink = data[i].Id;
             //var idLink = '<a href="images/inspect/' + data[i].Id  + '">' + id  + '</a>';
             //var idLink = '<a onclick=""' + data[i].Id  + '">' + id  + '</a>';
@@ -67,7 +37,7 @@ $(document)
             //var dt = convertUnixTime(data[i].Created);
             var dt = data[i].Created;
             td.appendChild(document.createTextNode(dt));
-            var td = tr.insertCell();
+            //var td = tr.insertCell();
             //var text = '';
             //if (data[i].Labels !== 'undefined' && data[i].Labels !== null)  {
             //    for (var j = 0; j < data[i].Labels.length; j++)
@@ -191,15 +161,30 @@ $(document)
         .tab('change tab', 'tab-list')
     ;
 
+    loadNodeList();
+
     function loadNodeList() {
         $.getJSON("/nodes/list")
             .done(function(data) {
+                if (data.length === 0) {
+                    $('#tab-list-message').text('No nodes.');
+                    return;
+                }
+                var t = document.getElementById('table-list');
+                var tbl = new Table();
+                tbl.create(t);
+                tbl.setHeader([
+                    'Id', 
+                    'Name', 
+                    'Address', 
+                    'Description', 
+                    'Created', 
+                    ]);
                 tableCreate($("#tab-list #results")[0], data);
             })
         ;
     }
 
-    loadNodeList();
 
     /*
     $('#menu-tabs-search')
