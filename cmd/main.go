@@ -9,6 +9,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	_ "github.com/mattn/go-sqlite3"
 	lib "github.com/russmack/hoist/lib"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -32,7 +33,21 @@ const (
 	dbFilename = "hoist.db"
 )
 
+var (
+	templates = template.Must(template.ParseFiles(
+		path.Join(rootPath, "index.html"),
+		path.Join(rootPath, "images.html"),
+		path.Join(rootPath, "containers.html"),
+		path.Join(rootPath, "nodes.html"),
+		path.Join(rootPath, "monitor.html"),
+		path.Join(rootPath, "header.html"),
+		path.Join(rootPath, "footer.html"),
+		path.Join(rootPath, "menubar.html"),
+	))
+)
+
 func init() {
+
 	db := NewDatabase(dbFilename)
 	db.Init()
 }
@@ -48,6 +63,7 @@ func main() {
 	router.HandlerFunc("GET", "/containers.html", containersHandler)
 	router.HandlerFunc("GET", "/nodes.html", nodesHandler)
 	router.HandlerFunc("GET", "/monitor.html", monitorHandler)
+	//router.HandlerFunc("GET", "/monitor.html?nodeid=:nodeid", monitorHandler)
 	router.GET("/images/:endpoint", imagesGetHandler)
 	router.GET("/images/:endpoint/:id", imagesGetHandler)
 	router.GET("/containers/:endpoint", containersGetHandler)
@@ -76,19 +92,49 @@ func faviconHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, path.Join(rootPath, "index.html"))
+	data := struct {
+		Mainscript string
+	}{
+		"index",
+	}
+	templates.ExecuteTemplate(w, "index.html", data)
 }
 func imagesHandler(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, path.Join(rootPath, "images.html"))
+	data := struct {
+		Mainscript string
+	}{
+		"images",
+	}
+	templates.ExecuteTemplate(w, "images.html", data)
 }
 func containersHandler(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, path.Join(rootPath, "containers.html"))
+	data := struct {
+		Mainscript string
+	}{
+		"containers",
+	}
+	templates.ExecuteTemplate(w, "containers.html", data)
 }
 func nodesHandler(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, path.Join(rootPath, "nodes.html"))
+	data := struct {
+		Mainscript string
+	}{
+		"nodes",
+	}
+	templates.ExecuteTemplate(w, "nodes.html", data)
 }
+
+//func monitorHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 func monitorHandler(w http.ResponseWriter, r *http.Request) {
-	http.ServeFile(w, r, path.Join(rootPath, "monitor.html"))
+	//if ps.ByName("nodeid") != null {
+	// embed node id in monitor page, return monitor page
+	//}
+	data := struct {
+		Mainscript string
+	}{
+		"monitor",
+	}
+	templates.ExecuteTemplate(w, "monitor.html", data)
 }
 func imagesGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	switch ps.ByName("endpoint") {
