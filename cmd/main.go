@@ -63,7 +63,6 @@ func main() {
 	router.HandlerFunc("GET", "/containers.html", containersHandler)
 	router.HandlerFunc("GET", "/nodes.html", nodesHandler)
 	router.HandlerFunc("GET", "/monitor.html", monitorHandler)
-	//router.HandlerFunc("GET", "/monitor.html?nodeid=:nodeid", monitorHandler)
 	router.GET("/images/:endpoint", imagesGetHandler)
 	router.GET("/images/:endpoint/:id", imagesGetHandler)
 	router.GET("/containers/:endpoint", containersGetHandler)
@@ -124,15 +123,14 @@ func nodesHandler(w http.ResponseWriter, r *http.Request) {
 	templates.ExecuteTemplate(w, "nodes.html", data)
 }
 
-//func monitorHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 func monitorHandler(w http.ResponseWriter, r *http.Request) {
-	//if ps.ByName("nodeid") != null {
-	// embed node id in monitor page, return monitor page
-	//}
+	nid := r.URL.Query().Get("nodeid")
 	data := struct {
 		Mainscript string
+		NodeId     string
 	}{
 		"monitor",
+		nid,
 	}
 	templates.ExecuteTemplate(w, "monitor.html", data)
 }

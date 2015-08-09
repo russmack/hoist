@@ -1,6 +1,7 @@
 $(document)
   .ready(function() {
 
+    /*
     var
       validationRules = {
         firstName: {
@@ -18,6 +19,7 @@ $(document)
         }
       }
     ;
+    */
 
     $('.ui.dropdown')
       .dropdown({
@@ -25,11 +27,13 @@ $(document)
       })
     ;
 
+    /*
     $('.ui.form')
       .form(validationRules, {
         on: 'blur'
       })
     ;
+    */
 
     $('.masthead .information')
       .transition('scale in', 1000)
@@ -47,7 +51,7 @@ $(document)
     
     $('#menu-tabs-dockerversion')
         .on('click', function() {
-            $.getJSON("/monitor/version")
+            $.getJSON('/monitor/version')
                 .done(function(data) {
                     document.getElementById('version-apiversion').innerHTML = data.ApiVersion;
                     document.getElementById('version-arch').innerHTML = data.Arch;
@@ -58,8 +62,8 @@ $(document)
                     document.getElementById('version-version').innerHTML = data.Version;
                 })
                 .fail(function( jqxhr, textStatus, error ) {
-                    var err = textStatus + ", " + error;
-                    console.log( "Request Failed: " + err );
+                    var err = textStatus + ', ' + error;
+                    console.log('Request Failed: ' + err );
                 })
             ;
         })
@@ -115,6 +119,9 @@ $(document)
     ;
 
     function loadInfoTab() {
+        if (nodeId !== '') {
+            console.log('Load info with nodeId: ' + nodeId);
+        }
         $.getJSON("/monitor/info")
             .done(function(data) {
                 var driverStatus = '';
@@ -161,6 +168,8 @@ $(document)
         })
         ;
     }
+
+    var nodeId = document.getElementById('hidden-nodeid').value;
 
     loadInfoTab();
 
