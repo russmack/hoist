@@ -14,6 +14,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strconv"
 	"time"
 )
 
@@ -68,7 +69,7 @@ func main() {
 	router.GET("/containers/:endpoint", containersGetHandler)
 	router.GET("/containers/:endpoint/:id", containersGetHandler)
 	router.GET("/nodes/:endpoint", nodesGetHandler)
-	router.GET("/monitor/:endpoint", monitorGetHandler)
+	router.GET("/monitor/:endpoint/:nodeid", monitorGetHandler)
 	router.POST("/nodes", nodesPostHandler)
 	router.ServeFiles("/static/*filepath", http.Dir(rootPath))
 
@@ -195,7 +196,7 @@ type Response map[string]interface{}
 func monitorGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	switch ps.ByName("endpoint") {
 	case "info":
-		fmt.Fprintf(w, monitorInfo(cfg))
+		fmt.Fprintf(w, monitorInfo(cfg, ps.ByName("nodeid")))
 	case "version":
 		fmt.Fprintf(w, monitorVersion(cfg))
 	case "ping":
@@ -314,7 +315,17 @@ func nodeAdd(cfg Config, h *Node) string {
 	return string(json)
 }
 
-func monitorInfo(cfg Config) string {
+func monitorInfo(cfg Config, nodeId string) string {
+	// Get ipaddress for nodeId from db
+	db := NewDatabase(dbFilename)
+	nodesDb := NewNodesDataStore(db)
+	n, err := strconv.ParseInt(nodeId, 10, 64)
+	node, err := nodesDb.GetNodeById(n)
+	if err != nil {
+		fmt.Println("Unable to get node for monitor info.", err)
+		return ""
+	}
+	fmt.Println("Got node for monitor info: %+v\n", node)
 	uri := fmt.Sprintf("%s/info", cfg.Addr)
 	return getHttpString(uri)
 }
