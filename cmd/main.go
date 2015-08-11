@@ -316,6 +316,7 @@ func nodeAdd(cfg Config, h *Node) string {
 }
 
 func monitorInfo(cfg Config, nodeId string) string {
+	fmt.Println("Getting node for id:", nodeId)
 	// Get ipaddress for nodeId from db
 	db := NewDatabase(dbFilename)
 	nodesDb := NewNodesDataStore(db)
@@ -325,8 +326,12 @@ func monitorInfo(cfg Config, nodeId string) string {
 		fmt.Println("Unable to get node for monitor info.", err)
 		return ""
 	}
-	fmt.Println("Got node for monitor info: %+v\n", node)
-	uri := fmt.Sprintf("%s/info", cfg.Addr)
+	fmt.Printf("Got node for monitor info: %+v\n", node)
+	// Replace ip address in cfg.Addr with node.Address
+	addr := "https://" + node.Address + ":2376"
+	//uri := fmt.Sprintf("%s/info", cfg.Addr)
+	uri := fmt.Sprintf("%s/info", addr)
+	fmt.Println("Monitoring info for addr:", uri)
 	return getHttpString(uri)
 }
 func monitorVersion(cfg Config) string {
@@ -808,7 +813,7 @@ func (d *NodesDataStore) GetNodeById(id int64) (Node, error) {
 	stmt := "select rowid, * from Nodes where rowid = ?"
 	row := db.QueryRow(stmt, id)
 	var node Node
-	row.Scan(&node.Id, &node.Name, &node.Address, &node.Description, &node.Created)
+	row.Scan(&node.Id, &node.Address, &node.Name, &node.Description, &node.Created)
 	switch {
 	case err == sql.ErrNoRows:
 		log.Println("No node with specified id.")

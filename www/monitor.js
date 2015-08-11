@@ -122,7 +122,7 @@ $(document)
         if (nodeId !== '') {
             console.log('Load info with nodeId: ' + nodeId);
         }
-        $.getJSON("/monitor/info/nodeId")
+        $.getJSON('/monitor/info/' + nodeId)
             .done(function(data) {
                 var driverStatus = '';
                 for (var i=0; i<data.DriverStatus.length; i++) {
