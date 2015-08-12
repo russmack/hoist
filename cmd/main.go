@@ -198,11 +198,11 @@ func monitorGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Par
 	case "info":
 		fmt.Fprintf(w, monitorInfo(cfg, ps.ByName("nodeid")))
 	case "version":
-		fmt.Fprintf(w, monitorVersion(cfg))
+		fmt.Fprintf(w, monitorVersion(cfg, ps.ByName("nodeid")))
 	case "ping":
-		fmt.Fprintf(w, monitorPing(cfg))
+		fmt.Fprintf(w, monitorPing(cfg, ps.ByName("nodeid")))
 	case "events":
-		monitorEvents(cfg, w)
+		monitorEvents(cfg, ps.ByName("nodeid"), w)
 	}
 }
 func elseHandler(w http.ResponseWriter, r *http.Request) {
@@ -328,18 +328,56 @@ func monitorInfo(cfg Config, nodeId string) string {
 	}
 	fmt.Printf("Got node for monitor info: %+v\n", node)
 	// Replace ip address in cfg.Addr with node.Address
-	addr := "https://" + node.Address + ":2376"
+	port := 2376
+	fmt.Println("PORT:", node.Port)
+	if node.Port != 0 {
+		port = node.Port
+	}
+	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, port)
+
 	//uri := fmt.Sprintf("%s/info", cfg.Addr)
 	uri := fmt.Sprintf("%s/info", addr)
 	fmt.Println("Monitoring info for addr:", uri)
 	return getHttpString(uri)
 }
-func monitorVersion(cfg Config) string {
-	uri := fmt.Sprintf("%s/version", cfg.Addr)
+func monitorVersion(cfg Config, nodeId string) string {
+	db := NewDatabase(dbFilename)
+	nodesDb := NewNodesDataStore(db)
+	n, err := strconv.ParseInt(nodeId, 10, 64)
+	node, err := nodesDb.GetNodeById(n)
+	if err != nil {
+		fmt.Println("Unable to get node for monitor info.", err)
+		return ""
+	}
+	fmt.Printf("Got node for monitor ping: %+v\n", node)
+	// Replace ip address in cfg.Addr with node.Address
+	port := 2376
+	if node.Port != 0 {
+		port = node.Port
+	}
+	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, port)
+
+	uri := fmt.Sprintf("%s/version", addr)
 	return getHttpString(uri)
 }
-func monitorPing(cfg Config) string {
-	uri := fmt.Sprintf("%s/_ping", cfg.Addr)
+func monitorPing(cfg Config, nodeId string) string {
+	db := NewDatabase(dbFilename)
+	nodesDb := NewNodesDataStore(db)
+	n, err := strconv.ParseInt(nodeId, 10, 64)
+	node, err := nodesDb.GetNodeById(n)
+	if err != nil {
+		fmt.Println("Unable to get node for monitor info.", err)
+		return ""
+	}
+	fmt.Printf("Got node for monitor ping: %+v\n", node)
+	// Replace ip address in cfg.Addr with node.Address
+	port := 2376
+	if node.Port != 0 {
+		port = node.Port
+	}
+	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, port)
+
+	uri := fmt.Sprintf("%s/_ping", addr)
 	body := getHttpString(uri)
 	bodyJson := ""
 	b, err := json.Marshal(body)
@@ -351,10 +389,26 @@ func monitorPing(cfg Config) string {
 	return bodyJson
 }
 
-func monitorEvents(cfg Config, w http.ResponseWriter) {
+func monitorEvents(cfg Config, nodeId string, w http.ResponseWriter) {
 	fmt.Println("monitoring events ...")
+	db := NewDatabase(dbFilename)
+	nodesDb := NewNodesDataStore(db)
+	n, err := strconv.ParseInt(nodeId, 10, 64)
+	node, err := nodesDb.GetNodeById(n)
+	if err != nil {
+		fmt.Println("Unable to get node for monitor info.", err)
+		return
+	}
+	fmt.Printf("Got node for monitor ping: %+v\n", node)
+	// Replace ip address in cfg.Addr with node.Address
+	port := 2376
+	if node.Port != 0 {
+		port = node.Port
+	}
+	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, port)
+
 	done := make(chan bool)
-	uri := fmt.Sprintf("%s/events", cfg.Addr)
+	uri := fmt.Sprintf("%s/events", addr)
 	eChan := make(chan Event)
 
 	f, ok := w.(http.Flusher)
@@ -672,14 +726,18 @@ func selectRows(dbName string, tableName string, maxRows string) []Node {
 	for rows.Next() {
 		var rowid int
 		var name string
+		var scheme string
 		var address string
+		var port int
 		var description string
 		var created string
-		rows.Scan(&rowid, &name, &address, &description, &created)
+		rows.Scan(&rowid, &name, &scheme, &address, &port, &description, &created)
 		node := &Node{
 			Id:          rowid,
 			Name:        name,
+			Scheme:      scheme,
 			Address:     address,
+			Port:        port,
 			Description: description,
 			Created:     created,
 		}
@@ -691,7 +749,9 @@ func selectRows(dbName string, tableName string, maxRows string) []Node {
 type Node struct {
 	Id          int
 	Name        string
+	Scheme      string
 	Address     string
+	Port        int
 	Description string
 	Created     string
 }
@@ -714,8 +774,10 @@ func NewNodesDataStore(db *Database) *NodesDataStore {
 func (d *NodesDataStore) CreateTable() {
 	stmt := ` 
 			create table if not exists Nodes ( 
-		        Address text not null, 
 		        Name text, 
+				Scheme text,
+		        Address text not null, 
+				Port integer,
 		        Description text, 
 		        Created text 
 		    );
@@ -758,14 +820,14 @@ func (d *NodesDataStore) AddNode(n *Node) (Node, error) {
 		return Node{}, err
 	}
 
-	stmt, err := tx.Prepare("insert into Nodes(Name, Address, Description, Created) values (?, ?, ?, ?)")
+	stmt, err := tx.Prepare("insert into Nodes(Name, Scheme, Address, Port, Description, Created) values (?, ?, ?, ?, ?, ?)")
 	if err != nil {
 		fmt.Println("Error: unable to prepare transaction statement: " + err.Error())
 		return Node{}, err
 	}
 	defer stmt.Close()
 
-	r, err := stmt.Exec(n.Address, n.Name, n.Description, n.Created)
+	r, err := stmt.Exec(n.Name, n.Scheme, n.Address, n.Port, n.Description, n.Created)
 	if err != nil {
 		fmt.Println("Error: unable to insert database record: " + err.Error())
 		return Node{}, err
@@ -810,10 +872,10 @@ func (d *NodesDataStore) GetNodeById(id int64) (Node, error) {
 	}
 	defer db.Close()
 
-	stmt := "select rowid, * from Nodes where rowid = ?"
+	stmt := "select rowid, Name, Scheme, Address, Port, Description, Created from Nodes where rowid = ?"
 	row := db.QueryRow(stmt, id)
 	var node Node
-	row.Scan(&node.Id, &node.Address, &node.Name, &node.Description, &node.Created)
+	row.Scan(&node.Id, &node.Name, &node.Scheme, &node.Address, &node.Port, &node.Description, &node.Created)
 	switch {
 	case err == sql.ErrNoRows:
 		log.Println("No node with specified id.")

@@ -51,7 +51,10 @@ $(document)
     
     $('#menu-tabs-dockerversion')
         .on('click', function() {
-            $.getJSON('/monitor/version')
+            if (nodeId !== '') {
+                console.log('Load info with nodeId: ' + nodeId);
+            }
+            $.getJSON('/monitor/version/' + nodeId)
                 .done(function(data) {
                     document.getElementById('version-apiversion').innerHTML = data.ApiVersion;
                     document.getElementById('version-arch').innerHTML = data.Arch;
@@ -71,7 +74,10 @@ $(document)
 
     $('#menu-tabs-ping')
         .on('click', function() {
-            $.getJSON("/monitor/ping")
+            if (nodeId !== '') {
+                console.log('Load info with nodeId: ' + nodeId);
+            }
+            $.getJSON('/monitor/ping/' + nodeId)
                 .done(function(data) {
                     $('#tab-ping #results').text('Ping response: ' + JSON.stringify(data));
                 })
@@ -93,7 +99,10 @@ $(document)
                 console.log('Event sourcing is not available in this browser.');
             }
             
-            jsonStream = new EventSource('monitor/events');
+            if (nodeId !== '') {
+                console.log('Load info with nodeId: ' + nodeId);
+            }
+            jsonStream = new EventSource('monitor/events/' + nodeId);
             
             jsonStream.addEventListener('message', function(e) {
                     console.log(e.data);
