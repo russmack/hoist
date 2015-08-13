@@ -30,7 +30,11 @@ $(document)
             var td = tr.insertCell();
             td.appendChild(document.createTextNode(data[i].Name));
             var td = tr.insertCell();
+            td.appendChild(document.createTextNode(data[i].Scheme));
+            var td = tr.insertCell();
             td.appendChild(document.createTextNode(data[i].Address));
+            var td = tr.insertCell();
+            td.appendChild(document.createTextNode(data[i].Port));
             var td = tr.insertCell();
             td.appendChild(document.createTextNode(data[i].Description));
             var td = tr.insertCell();
@@ -176,7 +180,9 @@ $(document)
                 tbl.setHeader([
                     'Id', 
                     'Name', 
+                    'Scheme',
                     'Address', 
+                    'Port',
                     'Description', 
                     'Created', 
                     ]);
@@ -214,12 +220,34 @@ $(document)
             }
             ]
         },
+        'tab-add-scheme-text': {
+            identifier: 'tab-add-scheme-text', 
+            rules: [
+            {
+                type: 'empty',
+                prompt: 'HTTP or HTTPS?'
+            }
+            ]
+        },
         'tab-add-address-text': {
             identifier: 'tab-add-address-text', 
             rules: [
             {
                 type: 'empty',
                 prompt: 'What\'s the IP address?'
+            }
+            ]
+        },
+        'tab-add-port-text': {
+            identifier: 'tab-add-port-text', 
+            rules: [
+            {
+                type: 'empty',
+                prompt: 'What\'s the port?'
+            }, 
+            {
+                type: 'integer[1..65535]',
+                prompt: 'Invalid port number.'
             }
             ]
         },
@@ -239,11 +267,15 @@ $(document)
             $('.ui.dimmer').dimmer('show');
             
             var name = $('#tab-add-name-text').val();
+            var scheme = $('#tab-add-scheme-text').val();
             var address = $('#tab-add-address-text').val();
+            var port = $('#tab-add-port-text').val();
             var desc = $('#tab-add-description-text').val();
             var node = {
                 'Name': name,
+                'Scheme': scheme,
                 'Address': address,
+                'Port': port, 
                 'Description': desc
             };
             var postBody = JSON.stringify(node);

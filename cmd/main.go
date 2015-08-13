@@ -708,7 +708,9 @@ func selectRows(dbName string, tableName string, maxRows string) []Node {
 	}
 	defer db.Close()
 
-	stmt, err := db.Prepare("select rowid, * from " + tableName + " limit " + maxRows)
+	stmt, err := db.Prepare(
+		"select rowid, name, scheme, address, port, description, created " +
+			" from " + tableName + " limit " + maxRows)
 	//stmt, err := db.Prepare("select * from ? limit ?")
 	if err != nil {
 		fmt.Println("Error: unable to prepare query: " + err.Error())
@@ -731,7 +733,10 @@ func selectRows(dbName string, tableName string, maxRows string) []Node {
 		var port int
 		var description string
 		var created string
-		rows.Scan(&rowid, &name, &scheme, &address, &port, &description, &created)
+		err := rows.Scan(&rowid, &name, &scheme, &address, &port, &description, &created)
+		if err != nil {
+			fmt.Println("ERR: ", err)
+		}
 		node := &Node{
 			Id:          rowid,
 			Name:        name,
@@ -742,6 +747,10 @@ func selectRows(dbName string, tableName string, maxRows string) []Node {
 			Created:     created,
 		}
 		nodes = append(nodes, *node)
+	}
+	err = rows.Err()
+	if err != nil {
+		fmt.Println("Err from rows: ", err)
 	}
 	return nodes
 }
