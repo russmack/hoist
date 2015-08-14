@@ -269,7 +269,7 @@ $(document)
             var name = $('#tab-add-name-text').val();
             var scheme = $('#tab-add-scheme-text').val();
             var address = $('#tab-add-address-text').val();
-            var port = $('#tab-add-port-text').val();
+            var port = parseInt( $('#tab-add-port-text').val(), 10);
             var desc = $('#tab-add-description-text').val();
             var node = {
                 'Name': name,
