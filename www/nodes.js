@@ -29,6 +29,16 @@ $(document)
             td.innerHTML = idLink;
             var td = tr.insertCell();
             td.appendChild(document.createTextNode(data[i].Name));
+
+            // Add images button.
+            var imagesBtn = buildButton('Images', 'block layout icon');
+            var link = document.createElement('a');
+            var imagesUri = 'images.html?nodeid=' + idLink;
+            console.log('URI: ' + imagesUri);
+            link.setAttribute('href', imagesUri)
+            $(link).append(imagesBtn);
+            $(td).append($(link));
+
             var td = tr.insertCell();
             td.appendChild(document.createTextNode(data[i].Scheme));
             var td = tr.insertCell();

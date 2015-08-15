@@ -182,12 +182,14 @@ $(document)
     ;
 
     function loadImageList() {
-        $.getJSON("/images/list")
+        $.getJSON('/nodes/get/' + nodeId  + '/images/list')
             .done(function(data) {
                 tableCreate($("#results")[0], data);
             })
         ;
     }
+
+    var nodeId = document.getElementById('hidden-nodeid').value;
 
     loadImageList();
 
