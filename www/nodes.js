@@ -31,12 +31,21 @@ $(document)
             td.appendChild(document.createTextNode(data[i].Name));
 
             // Add images button.
-            var imagesBtn = buildButton('Images', 'block layout icon');
+            var imagesBtn = buildButton('Images', 'cube icon');
             var link = document.createElement('a');
             var imagesUri = 'images.html?nodeid=' + idLink;
             console.log('URI: ' + imagesUri);
             link.setAttribute('href', imagesUri)
             $(link).append(imagesBtn);
+            $(td).append($(link));
+
+            // Add containers button.
+            var containersBtn = buildButton('Containers', 'cubes icon');
+            var link = document.createElement('a');
+            var containersUri = 'containers.html?nodeid=' + idLink;
+            console.log('URI: ' + containersUri);
+            link.setAttribute('href', containersUri)
+            $(link).append(containersBtn);
             $(td).append($(link));
 
             var td = tr.insertCell();

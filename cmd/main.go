@@ -67,9 +67,9 @@ func main() {
 	router.HandlerFunc("GET", "/monitor.html", monitorHandler)
 	router.GET("/images/:endpoint", imagesGetHandler)
 	router.GET("/images/:endpoint/:id", imagesGetHandler)
-	router.GET("/containers/:endpoint", containersGetHandler)
 	router.GET("/containers/:endpoint/:id", containersGetHandler)
 	router.GET("/nodes/get/:nodeid/images/list", nodeImagesGetHandler)
+	router.GET("/nodes/get/:nodeid/containers/list", nodeContainersGetHandler)
 	router.GET("/nodes/list", nodesListHandler)
 	router.GET("/monitor/:endpoint/:nodeid", monitorGetHandler)
 	router.POST("/nodes", nodesPostHandler)
@@ -113,10 +113,13 @@ func imagesHandler(w http.ResponseWriter, r *http.Request) {
 	templates.ExecuteTemplate(w, "images.html", data)
 }
 func containersHandler(w http.ResponseWriter, r *http.Request) {
+	nid := r.URL.Query().Get("nodeid")
 	data := struct {
 		Mainscript string
+		NodeId     string
 	}{
 		"containers",
+		nid,
 	}
 	templates.ExecuteTemplate(w, "containers.html", data)
 }
@@ -154,8 +157,6 @@ func imagesGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Para
 }
 func containersGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	switch ps.ByName("endpoint") {
-	case "list":
-		fmt.Fprintf(w, containerList(cfg))
 	case "inspect":
 		fmt.Fprintf(w, containerInspect(cfg, ps.ByName("id")))
 	case "log":
@@ -175,6 +176,9 @@ func containersGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.
 	case "delete":
 		fmt.Fprintf(w, containerDelete(cfg, ps.ByName("id")))
 	}
+}
+func nodeContainersGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	fmt.Fprintf(w, containerList(cfg, ps.ByName("nodeid")))
 }
 func nodesListHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	fmt.Fprintf(w, nodeList(cfg))
@@ -223,11 +227,11 @@ func imageList(cfg Config, nodeId string) string {
 	n, err := strconv.ParseInt(nodeId, 10, 64)
 	node, err := nodesDb.GetNodeById(n)
 	if err != nil {
-		fmt.Println("Unable to get node for monitor info.", err)
+		fmt.Println("Unable to get node for images list.", err)
 		return ""
 	}
 
-	fmt.Printf("Got node for monitor info: %+v\n", node)
+	fmt.Printf("Got node for images list: %+v\n", node)
 	// Replace ip address in cfg.Addr with node.Address
 	port := 2376
 	fmt.Println("PORT:", node.Port)
@@ -238,7 +242,6 @@ func imageList(cfg Config, nodeId string) string {
 	uri := fmt.Sprintf("%s/images/json", addr)
 	fmt.Println(" for addr:", uri)
 	return getHttpString(uri)
-
 }
 
 func imageInspect(cfg Config, imageId string) string {
@@ -261,8 +264,28 @@ func imageDelete(cfg Config, imageId string) string {
 	return deleteHttp(uri)
 }
 
-func containerList(cfg Config) string {
-	uri := fmt.Sprintf("%s/containers/json?all=true", cfg.Addr)
+func containerList(cfg Config, nodeId string) string {
+	fmt.Println("Getting node for id:", nodeId)
+	// Get ipaddress for nodeId from db
+	db := NewDatabase(dbFilename)
+	nodesDb := NewNodesDataStore(db)
+	n, err := strconv.ParseInt(nodeId, 10, 64)
+	node, err := nodesDb.GetNodeById(n)
+	if err != nil {
+		fmt.Println("Unable to get node for containers list.", err)
+		return ""
+	}
+
+	fmt.Printf("Got node for containers list: %+v\n", node)
+	// Replace ip address in cfg.Addr with node.Address
+	port := 2376
+	fmt.Println("PORT:", node.Port)
+	if node.Port != 0 {
+		port = node.Port
+	}
+	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, port)
+	uri := fmt.Sprintf("%s/containers/json?all=true", addr)
+	fmt.Println(" for addr:", uri)
 	return getHttpString(uri)
 }
 

@@ -289,10 +289,12 @@ $(document)
         .tab('change tab', 'tab-list')
     ;
 
+    var nodeId = document.getElementById('hidden-nodeid').value;
+
     loadContainerList();
 
     function loadContainerList() {
-        $.getJSON("/containers/list")
+        $.getJSON('/nodes/get/' + nodeId  + '/containers/list')
             .done(function(data) {
                 if (data.length === 0) {
                     $('#tab-list-message').text('No containers.');
