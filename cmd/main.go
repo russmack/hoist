@@ -69,6 +69,7 @@ func main() {
 	router.GET("/images/:endpoint/:id", imagesGetHandler)
 	router.GET("/containers/:endpoint/:id", containersGetHandler)
 	router.GET("/nodes/get/:nodeid/images/list", nodeImagesGetHandler)
+	router.GET("/nodes/get/:nodeid/images/history/:imageid", nodeImageHistoryGetHandler)
 	router.GET("/nodes/get/:nodeid/containers/list", nodeContainersGetHandler)
 	router.GET("/nodes/list", nodesListHandler)
 	router.GET("/monitor/:endpoint/:nodeid", monitorGetHandler)
@@ -147,8 +148,6 @@ func imagesGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Para
 	switch ps.ByName("endpoint") {
 	case "inspect":
 		fmt.Fprintf(w, imageInspect(cfg, ps.ByName("id")))
-	case "history":
-		fmt.Fprintf(w, imageHistory(cfg, ps.ByName("id")))
 	case "search":
 		fmt.Fprintf(w, imageSearch(cfg, ps.ByName("id")))
 	case "delete":
@@ -201,6 +200,10 @@ func nodeImagesGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.
 	fmt.Fprintf(w, imageList(cfg, ps.ByName("nodeid")))
 }
 
+func nodeImageHistoryGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	fmt.Fprintf(w, imageHistory(cfg, ps.ByName("nodeid"), ps.ByName("imageid")))
+}
+
 func monitorGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	switch ps.ByName("endpoint") {
 	case "info":
@@ -249,8 +252,28 @@ func imageInspect(cfg Config, imageId string) string {
 	return getHttpString(uri)
 }
 
-func imageHistory(cfg Config, imageId string) string {
-	uri := fmt.Sprintf("%s/images/%s/history", cfg.Addr, imageId)
+func imageHistory(cfg Config, nodeId string, imageId string) string {
+	fmt.Println("Getting node for id:", nodeId)
+	// Get ipaddress for nodeId from db
+	db := NewDatabase(dbFilename)
+	nodesDb := NewNodesDataStore(db)
+	n, err := strconv.ParseInt(nodeId, 10, 64)
+	node, err := nodesDb.GetNodeById(n)
+	if err != nil {
+		fmt.Println("Unable to get node for containers list.", err)
+		return ""
+	}
+
+	fmt.Printf("Got node for containers list: %+v\n", node)
+	// Replace ip address in cfg.Addr with node.Address
+	port := 2376
+	fmt.Println("PORT:", node.Port)
+	if node.Port != 0 {
+		port = node.Port
+	}
+	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, port)
+	uri := fmt.Sprintf("%s/images/%s/history", addr, imageId)
+	fmt.Println(" for addr:", uri)
 	return getHttpString(uri)
 }
 

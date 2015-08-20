@@ -110,7 +110,7 @@ $(document)
                 tbl.clear();
 
                 // Get inspect data.
-                $.getJSON('/images/history/' + val, function() {
+                $.getJSON('/nodes/get/' + nodeId + '/images/history/' + val, function() {
                         //console.log('requested');
                 })
                 .done(function(data) {
