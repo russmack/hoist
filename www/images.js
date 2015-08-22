@@ -214,11 +214,11 @@ $(document)
     };
 
     $('.ui.form').form(searchValidationRules, { inline: true,  onSuccess: function() {
-            $('.ui.dimmer').dimmer('show');
+            //$('.ui.dimmer').dimmer('show');
             var term = $('#tab-search-text').val();
             $.getJSON('/images/search/' + term)
                 .done(function(data) {
-                    $('.ui.dimmer').dimmer('hide');
+                    //$('.ui.dimmer').dimmer('hide');
                     $('#tab-search-results #results').text(renderSearchResults(data));
                     $('#tab-search-results').modal('show');
                 })
