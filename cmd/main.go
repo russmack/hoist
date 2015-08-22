@@ -71,6 +71,7 @@ func main() {
 	router.GET("/nodes/get/:nodeid/images/list", nodeImagesGetHandler)
 	router.GET("/nodes/get/:nodeid/images/inspect/:imageid", nodeImageInspectGetHandler)
 	router.GET("/nodes/get/:nodeid/images/history/:imageid", nodeImageHistoryGetHandler)
+	router.GET("/nodes/get/:nodeid/images/delete/:imageid", nodeImageDeleteGetHandler)
 	router.GET("/nodes/get/:nodeid/containers/list", nodeContainersGetHandler)
 	router.GET("/nodes/list", nodesListHandler)
 	router.GET("/monitor/:endpoint/:nodeid", monitorGetHandler)
@@ -149,8 +150,6 @@ func imagesGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Para
 	switch ps.ByName("endpoint") {
 	case "search":
 		fmt.Fprintf(w, imageSearch(cfg, ps.ByName("id")))
-	case "delete":
-		fmt.Fprintf(w, imageDelete(cfg, ps.ByName("id")))
 	}
 }
 func containersGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -205,6 +204,10 @@ func nodeImageInspectGetHandler(w http.ResponseWriter, r *http.Request, ps httpr
 
 func nodeImageHistoryGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	fmt.Fprintf(w, imageHistory(cfg, ps.ByName("nodeid"), ps.ByName("imageid")))
+}
+
+func nodeImageDeleteGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	fmt.Fprintf(w, imageDelete(cfg, ps.ByName("nodeid"), ps.ByName("imageid")))
 }
 
 func monitorGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -304,8 +307,29 @@ func imageSearch(cfg Config, term string) string {
 	return getHttpString(uri)
 }
 
-func imageDelete(cfg Config, imageId string) string {
-	uri := fmt.Sprintf("%s/images/%s", cfg.Addr, imageId)
+func imageDelete(cfg Config, nodeId string, imageId string) string {
+	fmt.Println("Getting node for id:", nodeId)
+	// Get ipaddress for nodeId from db
+	db := NewDatabase(dbFilename)
+	nodesDb := NewNodesDataStore(db)
+	n, err := strconv.ParseInt(nodeId, 10, 64)
+	node, err := nodesDb.GetNodeById(n)
+	if err != nil {
+		fmt.Println("Unable to get node for images list.", err)
+		return ""
+	}
+
+	fmt.Printf("Got node for images list: %+v\n", node)
+	// Replace ip address in cfg.Addr with node.Address
+	port := 2376
+	fmt.Println("PORT:", node.Port)
+	if node.Port != 0 {
+		port = node.Port
+	}
+	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, port)
+	// TODO: seems need to use image name, not imageId
+	uri := fmt.Sprintf("%s/images/%s", addr, imageId)
+	fmt.Println("Delete image with uri:", uri)
 	return deleteHttp(uri)
 }
 

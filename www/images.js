@@ -155,7 +155,7 @@ $(document)
 
             $(deleteBtn).click( function() {
                 $('#tab-delete').modal('show');
-                $.getJSON('/images/delete/' + val, function() {
+                $.getJSON('/nodes/get/' + nodeId  + '/images/delete/' + val, function() {
                         //console.log('requested');
                 })
                 .done(function(data) {
