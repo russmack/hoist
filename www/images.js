@@ -131,7 +131,7 @@ $(document)
             $(link).click( function() {
                     //$('#menu-tabs #menu-tabs-inspect').click();
                     // Get inspect data.
-                    $.getJSON('/images/inspect/' + val, function() {
+                    $.getJSON('/nodes/get/' + nodeId  + '/images/inspect/' + val, function() {
                             //console.log('requested');
                         })
                         .done(function(data) {
