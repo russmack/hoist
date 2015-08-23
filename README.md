@@ -11,10 +11,15 @@ Lightweight container orchestration
 ## Usage
 ```
 cd cmd
-go run main.go
+go run main.go favicon.go
+
+Then visit: http://localhost:8100/
 ```
 
-### Somewhat Implemented
+### Implemented
+
+#### Nodes
+- [X] Add
 
 #### Images
 - [X] List
