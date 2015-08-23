@@ -168,7 +168,7 @@ $(document)
 
             $(startBtn).click( function() {
                 $('#tab-start').modal('show');
-                $.getJSON('/containers/start/' + val, function() {
+                $.getJSON('/nodes/get/' + nodeId + '/containers/start/' + val, function() {
                         //console.log('requested');
                 })
                 .done(function(data) {
