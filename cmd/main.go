@@ -67,12 +67,12 @@ func main() {
 	router.HandlerFunc("GET", "/monitor.html", monitorHandler)
 	router.GET("/images/:endpoint", imagesGetHandler)
 	router.GET("/images/:endpoint/:id", imagesGetHandler)
-	router.GET("/containers/:endpoint/:id", containersGetHandler)
 	router.GET("/nodes/get/:nodeid/images/list", nodeImagesGetHandler)
 	router.GET("/nodes/get/:nodeid/images/inspect/:imageid", nodeImageInspectGetHandler)
 	router.GET("/nodes/get/:nodeid/images/history/:imageid", nodeImageHistoryGetHandler)
-	router.GET("/nodes/get/:nodeid/images/delete/:imageid", nodeImageDeleteGetHandler)
+	router.GET("/nodes/get/:nodeid/images/delete/:imageid", nodeImageDeleteHandler)
 	router.GET("/nodes/get/:nodeid/containers/list", nodeContainersGetHandler)
+	router.GET("/nodes/get/:nodeid/containers/inspect/:containerid", nodeContainerInspectGetHandler)
 	router.GET("/nodes/list", nodesListHandler)
 	router.GET("/monitor/:endpoint/:nodeid", monitorGetHandler)
 	router.POST("/nodes", nodesPostHandler)
@@ -154,8 +154,6 @@ func imagesGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Para
 }
 func containersGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	switch ps.ByName("endpoint") {
-	case "inspect":
-		fmt.Fprintf(w, containerInspect(cfg, ps.ByName("id")))
 	case "log":
 		fmt.Fprintf(w, containerLog(cfg, ps.ByName("id")))
 	case "top":
@@ -176,6 +174,9 @@ func containersGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.
 }
 func nodeContainersGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	fmt.Fprintf(w, containerList(cfg, ps.ByName("nodeid")))
+}
+func nodeContainerInspectGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	fmt.Fprintf(w, containerInspect(cfg, ps.ByName("nodeid"), ps.ByName("containerid")))
 }
 func nodesListHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	fmt.Fprintf(w, nodeList(cfg))
@@ -206,7 +207,7 @@ func nodeImageHistoryGetHandler(w http.ResponseWriter, r *http.Request, ps httpr
 	fmt.Fprintf(w, imageHistory(cfg, ps.ByName("nodeid"), ps.ByName("imageid")))
 }
 
-func nodeImageDeleteGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func nodeImageDeleteHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	fmt.Fprintf(w, imageDelete(cfg, ps.ByName("nodeid"), ps.ByName("imageid")))
 }
 
@@ -320,8 +321,15 @@ func containerList(cfg Config, nodeId string) string {
 	return getHttpString(uri)
 }
 
-func containerInspect(cfg Config, containerId string) string {
-	uri := fmt.Sprintf("%s/containers/%s/json", cfg.Addr, containerId)
+func containerInspect(cfg Config, nodeId string, containerId string) string {
+	node, err := getNodeById(nodeId)
+	if err != nil {
+		body := fmt.Sprintf("{ \"success\": false, \"error\": \"Error getting node. %s\" }", err)
+		log.Println(body)
+		return body
+	}
+	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, node.Port)
+	uri := fmt.Sprintf("%s/containers/%s/json", addr, containerId)
 	return getHttpString(uri)
 }
 

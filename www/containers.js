@@ -246,7 +246,7 @@ $(document)
             */
             $(link).click( function() {
                     $('#tab-inspect').modal('show');
-                    $.getJSON('/containers/inspect/' + val, function() {
+                    $.getJSON('/nodes/get/' + nodeId  + '/containers/inspect/' + val, function() {
                             //console.log('requested');
                         })
                         .done(function(data) {
