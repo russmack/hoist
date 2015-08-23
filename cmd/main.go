@@ -73,6 +73,7 @@ func main() {
 	router.GET("/nodes/get/:nodeid/images/delete/:imageid", nodeImageDeleteHandler)
 	router.GET("/nodes/get/:nodeid/containers/list", nodeContainersGetHandler)
 	router.GET("/nodes/get/:nodeid/containers/inspect/:containerid", nodeContainerInspectGetHandler)
+	router.GET("/nodes/get/:nodeid/containers/top/:containerid", nodeContainerTopGetHandler)
 	router.GET("/nodes/get/:nodeid/containers/start/:containerid", nodeContainerStartGetHandler)
 	router.GET("/nodes/get/:nodeid/containers/stop/:containerid", nodeContainerStopGetHandler)
 	router.GET("/nodes/list", nodesListHandler)
@@ -158,8 +159,6 @@ func containersGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.
 	switch ps.ByName("endpoint") {
 	case "log":
 		fmt.Fprintf(w, containerLog(cfg, ps.ByName("id")))
-	case "top":
-		fmt.Fprintf(w, containerTop(cfg, ps.ByName("id")))
 	case "stats":
 		fmt.Fprintf(w, containerStats(cfg, ps.ByName("id")))
 	case "changes":
@@ -175,6 +174,9 @@ func nodeContainersGetHandler(w http.ResponseWriter, r *http.Request, ps httprou
 }
 func nodeContainerInspectGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	fmt.Fprintf(w, containerInspect(cfg, ps.ByName("nodeid"), ps.ByName("containerid")))
+}
+func nodeContainerTopGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	fmt.Fprintf(w, containerTop(cfg, ps.ByName("nodeid"), ps.ByName("containerid")))
 }
 func nodeContainerStartGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	fmt.Fprintf(w, containerStart(cfg, ps.ByName("nodeid"), ps.ByName("containerid")))
@@ -342,8 +344,15 @@ func containerLog(cfg Config, containerId string) string {
 	return getHttpString(uri)
 }
 
-func containerTop(cfg Config, containerId string) string {
-	uri := fmt.Sprintf("%s/containers/%s/top", cfg.Addr, containerId)
+func containerTop(cfg Config, nodeId string, containerId string) string {
+	node, err := getNodeById(nodeId)
+	if err != nil {
+		body := fmt.Sprintf("{ \"success\": false, \"error\": \"Error getting node. %s\" }", err)
+		log.Println(body)
+		return body
+	}
+	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, node.Port)
+	uri := fmt.Sprintf("%s/containers/%s/top", addr, containerId)
 	return getHttpString(uri)
 }
 

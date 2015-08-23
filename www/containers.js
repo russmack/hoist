@@ -87,7 +87,7 @@ $(document)
              */
 
             $(topBtn).click( function() {
-                $.getJSON('/containers/top/' + val, function() {
+                $.getJSON('/nodes/get/' + nodeId + '/containers/top/' + val, function() {
                     //console.log('requested'); i
                 })
                 .done(function(data) {
