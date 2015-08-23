@@ -228,7 +228,7 @@ func elseHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, p)
 }
 
-func imageList(cfg Config, nodeId string) string {
+func getNodeById(nodeId string) (Node, error) {
 	fmt.Println("Getting node for id:", nodeId)
 	// Get ipaddress for nodeId from db
 	db := NewDatabase(dbFilename)
@@ -237,66 +237,52 @@ func imageList(cfg Config, nodeId string) string {
 	node, err := nodesDb.GetNodeById(n)
 	if err != nil {
 		fmt.Println("Unable to get node for images list.", err)
-		return ""
+		return Node{}, err
 	}
 
 	fmt.Printf("Got node for images list: %+v\n", node)
 	// Replace ip address in cfg.Addr with node.Address
 	port := 2376
 	fmt.Println("PORT:", node.Port)
-	if node.Port != 0 {
-		port = node.Port
+	if node.Port == 0 {
+		node.Port = port
 	}
-	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, port)
+	return node, nil
+}
+
+func imageList(cfg Config, nodeId string) string {
+	node, err := getNodeById(nodeId)
+	if err != nil {
+		body := fmt.Sprintf("{ \"success\": false, \"error\": \"Error getting node. %s\" }", err)
+		log.Println(body)
+		return body
+	}
+	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, node.Port)
 	uri := fmt.Sprintf("%s/images/json", addr)
 	fmt.Println(" for addr:", uri)
 	return getHttpString(uri)
 }
 
 func imageInspect(cfg Config, nodeId string, imageId string) string {
-	fmt.Println("Getting node for id:", nodeId)
-	// Get ipaddress for nodeId from db
-	db := NewDatabase(dbFilename)
-	nodesDb := NewNodesDataStore(db)
-	n, err := strconv.ParseInt(nodeId, 10, 64)
-	node, err := nodesDb.GetNodeById(n)
+	node, err := getNodeById(nodeId)
 	if err != nil {
-		fmt.Println("Unable to get node for image inspect.", err)
-		return ""
+		body := fmt.Sprintf("{ \"success\": false, \"error\": \"Error getting node. %s\" }", err)
+		log.Println(body)
+		return body
 	}
-
-	fmt.Printf("Got node for container image inspect: %+v\n", node)
-	// Replace ip address in cfg.Addr with node.Address
-	port := 2376
-	fmt.Println("PORT:", node.Port)
-	if node.Port != 0 {
-		port = node.Port
-	}
-	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, port)
+	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, node.Port)
 	uri := fmt.Sprintf("%s/images/%s/json", addr, imageId)
 	return getHttpString(uri)
 }
 
 func imageHistory(cfg Config, nodeId string, imageId string) string {
-	fmt.Println("Getting node for id:", nodeId)
-	// Get ipaddress for nodeId from db
-	db := NewDatabase(dbFilename)
-	nodesDb := NewNodesDataStore(db)
-	n, err := strconv.ParseInt(nodeId, 10, 64)
-	node, err := nodesDb.GetNodeById(n)
+	node, err := getNodeById(nodeId)
 	if err != nil {
-		fmt.Println("Unable to get node for image history.", err)
-		return ""
+		body := fmt.Sprintf("{ \"success\": false, \"error\": \"Error getting node. %s\" }", err)
+		log.Println(body)
+		return body
 	}
-
-	fmt.Printf("Got node for image history: %+v\n", node)
-	// Replace ip address in cfg.Addr with node.Address
-	port := 2376
-	fmt.Println("PORT:", node.Port)
-	if node.Port != 0 {
-		port = node.Port
-	}
-	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, port)
+	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, node.Port)
 	uri := fmt.Sprintf("%s/images/%s/history", addr, imageId)
 	fmt.Println(" for addr:", uri)
 	return getHttpString(uri)
@@ -308,25 +294,13 @@ func imageSearch(cfg Config, term string) string {
 }
 
 func imageDelete(cfg Config, nodeId string, imageId string) string {
-	fmt.Println("Getting node for id:", nodeId)
-	// Get ipaddress for nodeId from db
-	db := NewDatabase(dbFilename)
-	nodesDb := NewNodesDataStore(db)
-	n, err := strconv.ParseInt(nodeId, 10, 64)
-	node, err := nodesDb.GetNodeById(n)
+	node, err := getNodeById(nodeId)
 	if err != nil {
-		fmt.Println("Unable to get node for images list.", err)
-		return ""
+		body := fmt.Sprintf("{ \"success\": false, \"error\": \"Error getting node. %s\" }", err)
+		log.Println(body)
+		return body
 	}
-
-	fmt.Printf("Got node for images list: %+v\n", node)
-	// Replace ip address in cfg.Addr with node.Address
-	port := 2376
-	fmt.Println("PORT:", node.Port)
-	if node.Port != 0 {
-		port = node.Port
-	}
-	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, port)
+	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, node.Port)
 	// TODO: seems need to use image name, not imageId
 	uri := fmt.Sprintf("%s/images/%s", addr, imageId)
 	fmt.Println("Delete image with uri:", uri)
@@ -334,25 +308,13 @@ func imageDelete(cfg Config, nodeId string, imageId string) string {
 }
 
 func containerList(cfg Config, nodeId string) string {
-	fmt.Println("Getting node for id:", nodeId)
-	// Get ipaddress for nodeId from db
-	db := NewDatabase(dbFilename)
-	nodesDb := NewNodesDataStore(db)
-	n, err := strconv.ParseInt(nodeId, 10, 64)
-	node, err := nodesDb.GetNodeById(n)
+	node, err := getNodeById(nodeId)
 	if err != nil {
-		fmt.Println("Unable to get node for containers list.", err)
-		return ""
+		body := fmt.Sprintf("{ \"success\": false, \"error\": \"Error getting node. %s\" }", err)
+		log.Println(body)
+		return body
 	}
-
-	fmt.Printf("Got node for containers list: %+v\n", node)
-	// Replace ip address in cfg.Addr with node.Address
-	port := 2376
-	fmt.Println("PORT:", node.Port)
-	if node.Port != 0 {
-		port = node.Port
-	}
-	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, port)
+	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, node.Port)
 	uri := fmt.Sprintf("%s/containers/json?all=true", addr)
 	fmt.Println(" for addr:", uri)
 	return getHttpString(uri)
@@ -433,67 +395,36 @@ func nodeAdd(cfg Config, h *Node) string {
 }
 
 func monitorInfo(cfg Config, nodeId string) string {
-	fmt.Println("Getting node for id:", nodeId)
-	// Get ipaddress for nodeId from db
-	db := NewDatabase(dbFilename)
-	nodesDb := NewNodesDataStore(db)
-	n, err := strconv.ParseInt(nodeId, 10, 64)
-	node, err := nodesDb.GetNodeById(n)
+	node, err := getNodeById(nodeId)
 	if err != nil {
-		fmt.Println("Unable to get node for monitor info.", err)
-		return ""
+		body := fmt.Sprintf("{ \"success\": false, \"error\": \"Error getting node. %s\" }", err)
+		log.Println(body)
+		return body
 	}
-	fmt.Printf("Got node for monitor info: %+v\n", node)
-	// Replace ip address in cfg.Addr with node.Address
-	port := 2376
-	fmt.Println("PORT:", node.Port)
-	if node.Port != 0 {
-		port = node.Port
-	}
-	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, port)
-
-	//uri := fmt.Sprintf("%s/info", cfg.Addr)
+	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, node.Port)
 	uri := fmt.Sprintf("%s/info", addr)
 	fmt.Println("Monitoring info for addr:", uri)
 	return getHttpString(uri)
 }
 func monitorVersion(cfg Config, nodeId string) string {
-	db := NewDatabase(dbFilename)
-	nodesDb := NewNodesDataStore(db)
-	n, err := strconv.ParseInt(nodeId, 10, 64)
-	node, err := nodesDb.GetNodeById(n)
+	node, err := getNodeById(nodeId)
 	if err != nil {
-		fmt.Println("Unable to get node for monitor version.", err)
-		return ""
+		body := fmt.Sprintf("{ \"success\": false, \"error\": \"Error getting node. %s\" }", err)
+		log.Println(body)
+		return body
 	}
-	fmt.Printf("Got node for monitor version: %+v\n", node)
-	// Replace ip address in cfg.Addr with node.Address
-	port := 2376
-	if node.Port != 0 {
-		port = node.Port
-	}
-	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, port)
-
+	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, node.Port)
 	uri := fmt.Sprintf("%s/version", addr)
 	return getHttpString(uri)
 }
 func monitorPing(cfg Config, nodeId string) string {
-	db := NewDatabase(dbFilename)
-	nodesDb := NewNodesDataStore(db)
-	n, err := strconv.ParseInt(nodeId, 10, 64)
-	node, err := nodesDb.GetNodeById(n)
+	node, err := getNodeById(nodeId)
 	if err != nil {
-		fmt.Println("Unable to get node for monitor ping.", err)
-		return ""
+		body := fmt.Sprintf("{ \"success\": false, \"error\": \"Error getting node. %s\" }", err)
+		log.Println(body)
+		return body
 	}
-	fmt.Printf("Got node for monitor ping: %+v\n", node)
-	// Replace ip address in cfg.Addr with node.Address
-	port := 2376
-	if node.Port != 0 {
-		port = node.Port
-	}
-	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, port)
-
+	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, node.Port)
 	uri := fmt.Sprintf("%s/_ping", addr)
 	body := getHttpString(uri)
 	bodyJson := ""
@@ -507,23 +438,13 @@ func monitorPing(cfg Config, nodeId string) string {
 }
 
 func monitorEvents(cfg Config, nodeId string, w http.ResponseWriter) {
-	fmt.Println("monitoring events ...")
-	db := NewDatabase(dbFilename)
-	nodesDb := NewNodesDataStore(db)
-	n, err := strconv.ParseInt(nodeId, 10, 64)
-	node, err := nodesDb.GetNodeById(n)
+	node, err := getNodeById(nodeId)
 	if err != nil {
-		fmt.Println("Unable to get node for monitor events.", err)
+		body := fmt.Sprintf("{ \"success\": false, \"error\": \"Error getting node. %s\" }", err)
+		log.Println(body)
 		return
 	}
-	fmt.Printf("Got node for monitor events: %+v\n", node)
-	// Replace ip address in cfg.Addr with node.Address
-	port := 2376
-	if node.Port != 0 {
-		port = node.Port
-	}
-	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, port)
-
+	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, node.Port)
 	done := make(chan bool)
 	uri := fmt.Sprintf("%s/events", addr)
 	eChan := make(chan Event)
