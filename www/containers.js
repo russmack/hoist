@@ -187,7 +187,7 @@ $(document)
 
             $(stopBtn).click( function() {
                 $('#tab-stop').modal('show');
-                $.getJSON('/containers/stop/' + val, function() {
+                $.getJSON('/nodes/get/' + nodeId + '/containers/stop/' + val, function() {
                         //console.log('requested');
                 })
                 .done(function(data) {
