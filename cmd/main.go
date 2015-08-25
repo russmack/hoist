@@ -76,6 +76,7 @@ func main() {
 	router.GET("/nodes/get/:nodeid/containers/top/:containerid", nodeContainerTopGetHandler)
 	router.GET("/nodes/get/:nodeid/containers/start/:containerid", nodeContainerStartGetHandler)
 	router.GET("/nodes/get/:nodeid/containers/stop/:containerid", nodeContainerStopGetHandler)
+	router.GET("/nodes/get/:nodeid/containers/restart/:containerid", nodeContainerRestartGetHandler)
 	router.GET("/nodes/list", nodesListHandler)
 	router.GET("/monitor/:endpoint/:nodeid", monitorGetHandler)
 	router.POST("/nodes", nodesPostHandler)
@@ -163,8 +164,6 @@ func containersGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.
 		fmt.Fprintf(w, containerStats(cfg, ps.ByName("id")))
 	case "changes":
 		fmt.Fprintf(w, containerChanges(cfg, ps.ByName("id")))
-	case "restart":
-		fmt.Fprintf(w, containerRestart(cfg, ps.ByName("id")))
 	case "delete":
 		fmt.Fprintf(w, containerDelete(cfg, ps.ByName("id")))
 	}
@@ -183,6 +182,9 @@ func nodeContainerStartGetHandler(w http.ResponseWriter, r *http.Request, ps htt
 }
 func nodeContainerStopGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	fmt.Fprintf(w, containerStop(cfg, ps.ByName("nodeid"), ps.ByName("containerid")))
+}
+func nodeContainerRestartGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	fmt.Fprintf(w, containerRestart(cfg, ps.ByName("nodeid"), ps.ByName("containerid")))
 }
 func nodesListHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	fmt.Fprintf(w, nodeList(cfg))
@@ -393,8 +395,15 @@ func containerStop(cfg Config, nodeId string, containerId string) string {
 	return postHttp(uri, "")
 }
 
-func containerRestart(cfg Config, containerId string) string {
-	uri := fmt.Sprintf("%s/containers/%s/restart", cfg.Addr, containerId)
+func containerRestart(cfg Config, nodeId string, containerId string) string {
+	node, err := getNodeById(nodeId)
+	if err != nil {
+		body := fmt.Sprintf("{ \"success\": false, \"error\": \"Error getting node. %s\" }", err)
+		log.Println(body)
+		return body
+	}
+	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, node.Port)
+	uri := fmt.Sprintf("%s/containers/%s/restart", addr, containerId)
 	return postHttp(uri, "")
 }
 

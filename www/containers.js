@@ -206,7 +206,7 @@ $(document)
 
             $(restartBtn).click( function() {
                 $('#tab-restart').modal('show');
-                $.getJSON('/containers/restart/' + val, function() {
+                $.getJSON('/nodes/get/' + nodeId + '/containers/restart/' + val, function() {
                         //console.log('requested');
                 })
                 .done(function(data) {
