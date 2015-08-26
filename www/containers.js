@@ -87,7 +87,7 @@ $(document)
              */
 
             $(topBtn).click( function() {
-                $.getJSON('/nodes/get/' + nodeId + '/containers/top/' + val, function() {
+                $.getJSON('/nodes/' + nodeId + '/containers/top/' + val, function() {
                     //console.log('requested'); i
                 })
                 .done(function(data) {
@@ -168,7 +168,7 @@ $(document)
 
             $(startBtn).click( function() {
                 $('#tab-start').modal('show');
-                $.getJSON('/nodes/get/' + nodeId + '/containers/start/' + val, function() {
+                $.getJSON('/nodes/' + nodeId + '/containers/start/' + val, function() {
                         //console.log('requested');
                 })
                 .done(function(data) {
@@ -187,7 +187,7 @@ $(document)
 
             $(stopBtn).click( function() {
                 $('#tab-stop').modal('show');
-                $.getJSON('/nodes/get/' + nodeId + '/containers/stop/' + val, function() {
+                $.getJSON('/nodes/' + nodeId + '/containers/stop/' + val, function() {
                         //console.log('requested');
                 })
                 .done(function(data) {
@@ -206,7 +206,7 @@ $(document)
 
             $(restartBtn).click( function() {
                 $('#tab-restart').modal('show');
-                $.getJSON('/nodes/get/' + nodeId + '/containers/restart/' + val, function() {
+                $.getJSON('/nodes/' + nodeId + '/containers/restart/' + val, function() {
                         //console.log('requested');
                 })
                 .done(function(data) {
@@ -246,7 +246,7 @@ $(document)
             */
             $(link).click( function() {
                     $('#tab-inspect').modal('show');
-                    $.getJSON('/nodes/get/' + nodeId  + '/containers/inspect/' + val, function() {
+                    $.getJSON('/nodes/' + nodeId  + '/containers/inspect/' + val, function() {
                             //console.log('requested');
                         })
                         .done(function(data) {
@@ -294,7 +294,7 @@ $(document)
     loadContainerList();
 
     function loadContainerList() {
-        $.getJSON('/nodes/get/' + nodeId  + '/containers/list')
+        $.getJSON('/nodes/' + nodeId  + '/containers/list')
             .done(function(data) {
                 if (data.length === 0) {
                     $('#tab-list-message').text('No containers.');

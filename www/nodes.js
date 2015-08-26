@@ -187,7 +187,7 @@ $(document)
     loadNodeList();
 
     function loadNodeList() {
-        $.getJSON("/nodes/list")
+        $.getJSON('/nodes')
             .done(function(data) {
                 if (data.length === 0) {
                     $('#tab-list-message').text('No nodes.');

@@ -110,7 +110,7 @@ $(document)
                 tbl.clear();
 
                 // Get inspect data.
-                $.getJSON('/nodes/get/' + nodeId + '/images/history/' + val, function() {
+                $.getJSON('/nodes/' + nodeId + '/images/history/' + val, function() {
                         //console.log('requested');
                 })
                 .done(function(data) {
@@ -131,7 +131,7 @@ $(document)
             $(link).click( function() {
                     //$('#menu-tabs #menu-tabs-inspect').click();
                     // Get inspect data.
-                    $.getJSON('/nodes/get/' + nodeId  + '/images/inspect/' + val, function() {
+                    $.getJSON('/nodes/' + nodeId  + '/images/inspect/' + val, function() {
                             //console.log('requested');
                         })
                         .done(function(data) {
@@ -155,7 +155,7 @@ $(document)
 
             $(deleteBtn).click( function() {
                 $('#tab-delete').modal('show');
-                $.getJSON('/nodes/get/' + nodeId  + '/images/delete/' + val, function() {
+                $.getJSON('/nodes/' + nodeId  + '/images/delete/' + val, function() {
                         //console.log('requested');
                 })
                 .done(function(data) {
@@ -182,7 +182,7 @@ $(document)
     ;
 
     function loadImageList() {
-        $.getJSON('/nodes/get/' + nodeId  + '/images/list')
+        $.getJSON('/nodes/' + nodeId  + '/images/list')
             .done(function(data) {
                 tableCreate($("#results")[0], data);
             })
