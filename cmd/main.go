@@ -418,7 +418,7 @@ func containerRestart(cfg Config, nodeId string, containerId string) string {
 	return postHttp(uri, "")
 }
 
-func containerDelete(cfg Config, containerId string) string {
+func containerDelete(cfg Config, nodeId string, containerId string) string {
 	node, err := getNodeById(nodeId)
 	if err != nil {
 		body := fmt.Sprintf("{ \"success\": false, \"error\": \"Error getting node. %s\" }", err)
