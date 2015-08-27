@@ -65,8 +65,7 @@ func main() {
 	router.HandlerFunc("GET", "/containers.html", containersHandler)
 	router.HandlerFunc("GET", "/nodes.html", nodesHandler)
 	router.HandlerFunc("GET", "/monitor.html", monitorHandler)
-	router.GET("/images/:endpoint", imagesGetHandler)
-	router.GET("/images/:endpoint/:id", imagesGetHandler)
+	router.GET("/images/search/:term", nodeImageSearchGetHandler)
 	router.GET("/nodes/:nodeid/images/list", nodeImagesGetHandler)
 	router.GET("/nodes/:nodeid/images/inspect/:imageid", nodeImageInspectGetHandler)
 	router.GET("/nodes/:nodeid/images/history/:imageid", nodeImageHistoryGetHandler)
@@ -152,12 +151,7 @@ func monitorHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	templates.ExecuteTemplate(w, "monitor.html", data)
 }
-func imagesGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	switch ps.ByName("endpoint") {
-	case "search":
-		fmt.Fprintf(w, imageSearch(cfg, ps.ByName("id")))
-	}
-}
+
 func containersGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	switch ps.ByName("endpoint") {
 	case "log":
@@ -209,6 +203,10 @@ type Response map[string]interface{}
 
 func nodeImagesGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	fmt.Fprintf(w, imageList(cfg, ps.ByName("nodeid")))
+}
+
+func nodeImageSearchGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	fmt.Fprintf(w, imageSearch(cfg, ps.ByName("term")))
 }
 
 func nodeImageInspectGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
