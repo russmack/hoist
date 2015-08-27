@@ -77,6 +77,7 @@ func main() {
 	router.GET("/nodes/:nodeid/containers/start/:containerid", nodeContainerStartGetHandler)
 	router.GET("/nodes/:nodeid/containers/stop/:containerid", nodeContainerStopGetHandler)
 	router.GET("/nodes/:nodeid/containers/restart/:containerid", nodeContainerRestartGetHandler)
+	router.GET("/nodes/:nodeid/containers/changes/:containerid", nodeContainerChangesGetHandler)
 	router.GET("/nodes", nodesListHandler)
 	router.GET("/monitor/:endpoint/:nodeid", monitorGetHandler)
 	router.POST("/nodes", nodesPostHandler)
@@ -162,8 +163,6 @@ func containersGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.
 		fmt.Fprintf(w, containerLog(cfg, ps.ByName("id")))
 	case "stats":
 		fmt.Fprintf(w, containerStats(cfg, ps.ByName("id")))
-	case "changes":
-		fmt.Fprintf(w, containerChanges(cfg, ps.ByName("id")))
 	case "delete":
 		fmt.Fprintf(w, containerDelete(cfg, ps.ByName("id")))
 	}
@@ -185,6 +184,9 @@ func nodeContainerStopGetHandler(w http.ResponseWriter, r *http.Request, ps http
 }
 func nodeContainerRestartGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	fmt.Fprintf(w, containerRestart(cfg, ps.ByName("nodeid"), ps.ByName("containerid")))
+}
+func nodeContainerChangesGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	fmt.Fprintf(w, containerChanges(cfg, ps.ByName("nodeid"), ps.ByName("containerid")))
 }
 func nodesListHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	fmt.Fprintf(w, nodeList(cfg))
@@ -366,8 +368,15 @@ func containerStats(cfg Config, containerId string) string {
 	return s
 }
 
-func containerChanges(cfg Config, containerId string) string {
-	uri := fmt.Sprintf("%s/containers/%s/changes", cfg.Addr, containerId)
+func containerChanges(cfg Config, nodeId string, containerId string) string {
+	node, err := getNodeById(nodeId)
+	if err != nil {
+		body := fmt.Sprintf("{ \"success\": false, \"error\": \"Error getting node. %s\" }", err)
+		log.Println(body)
+		return body
+	}
+	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, node.Port)
+	uri := fmt.Sprintf("%s/containers/%s/changes", addr, containerId)
 	return getHttpString(uri)
 }
 

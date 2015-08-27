@@ -126,7 +126,7 @@ $(document)
                 tbl.create(t);
                 tbl.clear();
 
-                $.getJSON('/containers/changes/' + val, function() {
+                $.getJSON('/nodes/' + nodeId + '/containers/changes/' + val, function() {
                     //console.log('requested');
                 })
                 .done(function(data) {
