@@ -149,7 +149,7 @@ $(document)
 
             $(deleteBtn).click( function() {
                 $('#tab-delete').modal('show');
-                $.getJSON('/containers/delete/' + val, function() {
+                $.getJSON('/nodes/' + nodeId + '/containers/delete/' + val, function() {
                         //console.log('requested');
                 })
                 .done(function(data) {

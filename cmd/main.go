@@ -78,6 +78,7 @@ func main() {
 	router.GET("/nodes/:nodeid/containers/stop/:containerid", nodeContainerStopGetHandler)
 	router.GET("/nodes/:nodeid/containers/restart/:containerid", nodeContainerRestartGetHandler)
 	router.GET("/nodes/:nodeid/containers/changes/:containerid", nodeContainerChangesGetHandler)
+	router.GET("/nodes/:nodeid/containers/delete/:containerid", nodeContainerDeleteGetHandler)
 	router.GET("/nodes", nodesListHandler)
 	router.GET("/monitor/:endpoint/:nodeid", monitorGetHandler)
 	router.POST("/nodes", nodesPostHandler)
@@ -163,8 +164,6 @@ func containersGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.
 		fmt.Fprintf(w, containerLog(cfg, ps.ByName("id")))
 	case "stats":
 		fmt.Fprintf(w, containerStats(cfg, ps.ByName("id")))
-	case "delete":
-		fmt.Fprintf(w, containerDelete(cfg, ps.ByName("id")))
 	}
 }
 func nodeContainersGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -187,6 +186,9 @@ func nodeContainerRestartGetHandler(w http.ResponseWriter, r *http.Request, ps h
 }
 func nodeContainerChangesGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	fmt.Fprintf(w, containerChanges(cfg, ps.ByName("nodeid"), ps.ByName("containerid")))
+}
+func nodeContainerDeleteGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	fmt.Fprintf(w, containerDelete(cfg, ps.ByName("nodeid"), ps.ByName("containerid")))
 }
 func nodesListHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	fmt.Fprintf(w, nodeList(cfg))
@@ -417,7 +419,14 @@ func containerRestart(cfg Config, nodeId string, containerId string) string {
 }
 
 func containerDelete(cfg Config, containerId string) string {
-	uri := fmt.Sprintf("%s/containers/%s", cfg.Addr, containerId)
+	node, err := getNodeById(nodeId)
+	if err != nil {
+		body := fmt.Sprintf("{ \"success\": false, \"error\": \"Error getting node. %s\" }", err)
+		log.Println(body)
+		return body
+	}
+	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, node.Port)
+	uri := fmt.Sprintf("%s/containers/%s", addr, containerId)
 	return deleteHttp(uri)
 }
 
