@@ -11,7 +11,8 @@ Lightweight container orchestration
 ## Usage
 ```
 cd cmd
-go run main.go favicon.go
+go build
+./cmd
 
 Then visit: http://localhost:8100/
 ```
