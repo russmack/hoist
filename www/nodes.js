@@ -11,6 +11,8 @@ $(document)
       .transition('scale in', 1000)
     ;
 
+    var apiVersion = '0.1';
+
     // Function to create a table.
     function tableCreate(el, data)
     {
@@ -187,7 +189,7 @@ $(document)
     loadNodeList();
 
     function loadNodeList() {
-        $.getJSON('/nodes')
+        $.getJSON('/' + apiVersion  + '/nodes')
             .done(function(data) {
                 if (data.length === 0) {
                     $('#tab-list-message').text('No nodes.');
@@ -298,7 +300,7 @@ $(document)
                 'Description': desc
             };
             var postBody = JSON.stringify(node);
-            $.post('/nodes', postBody, function() { console.log('success') } )
+            $.post('/' + apiVersion  + '/nodes', postBody, function() { console.log('success') } )
                 .done(function(data) {
                     $('.ui.dimmer').dimmer('hide');
                     var statusCode = data.StatusCode;

@@ -110,7 +110,7 @@ $(document)
                 tbl.clear();
 
                 // Get inspect data.
-                $.getJSON('/nodes/' + nodeId + '/images/history/' + val, function() {
+                $.getJSON('/' + apiVersion + '/nodes/' + nodeId + '/images/history/' + val, function() {
                         //console.log('requested');
                 })
                 .done(function(data) {
@@ -131,7 +131,7 @@ $(document)
             $(link).click( function() {
                     //$('#menu-tabs #menu-tabs-inspect').click();
                     // Get inspect data.
-                    $.getJSON('/nodes/' + nodeId  + '/images/inspect/' + val, function() {
+                    $.getJSON('/' + apiVersion + '/nodes/' + nodeId  + '/images/inspect/' + val, function() {
                             //console.log('requested');
                         })
                         .done(function(data) {
@@ -155,7 +155,7 @@ $(document)
 
             $(deleteBtn).click( function() {
                 $('#tab-delete').modal('show');
-                $.getJSON('/nodes/' + nodeId  + '/images/delete/' + val, function() {
+                $.getJSON('/' + apiVersion + '/nodes/' + nodeId  + '/images/delete/' + val, function() {
                         //console.log('requested');
                 })
                 .done(function(data) {
@@ -182,12 +182,14 @@ $(document)
     ;
 
     function loadImageList() {
-        $.getJSON('/nodes/' + nodeId  + '/images/list')
+        $.getJSON('/' + apiVersion + '/nodes/' + nodeId  + '/images/list')
             .done(function(data) {
                 tableCreate($("#results")[0], data);
             })
         ;
     }
+
+    var apiVersion = '0.1';
 
     var nodeId = document.getElementById('hidden-nodeid').value;
 
@@ -216,7 +218,7 @@ $(document)
     $('.ui.form').form(searchValidationRules, { inline: true,  onSuccess: function() {
             //$('.ui.dimmer').dimmer('show');
             var term = $('#tab-search-text').val();
-            $.getJSON('/images/search/' + term)
+            $.getJSON('/' + apiVersion + '/images/search/' + term)
                 .done(function(data) {
                     //$('.ui.dimmer').dimmer('hide');
                     $('#tab-search-results #results').text(renderSearchResults(data));

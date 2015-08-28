@@ -87,7 +87,7 @@ $(document)
              */
 
             $(topBtn).click( function() {
-                $.getJSON('/nodes/' + nodeId + '/containers/top/' + val, function() {
+                $.getJSON('/' + apiVersion + '/nodes/' + nodeId + '/containers/top/' + val, function() {
                     //console.log('requested'); i
                 })
                 .done(function(data) {
@@ -126,7 +126,7 @@ $(document)
                 tbl.create(t);
                 tbl.clear();
 
-                $.getJSON('/nodes/' + nodeId + '/containers/changes/' + val, function() {
+                $.getJSON('/' + apiVersion + '/nodes/' + nodeId + '/containers/changes/' + val, function() {
                     //console.log('requested');
                 })
                 .done(function(data) {
@@ -149,7 +149,7 @@ $(document)
 
             $(deleteBtn).click( function() {
                 $('#tab-delete').modal('show');
-                $.getJSON('/nodes/' + nodeId + '/containers/delete/' + val, function() {
+                $.getJSON(''/' + apiVersion + /nodes/' + nodeId + '/containers/delete/' + val, function() {
                         //console.log('requested');
                 })
                 .done(function(data) {
@@ -168,7 +168,7 @@ $(document)
 
             $(startBtn).click( function() {
                 $('#tab-start').modal('show');
-                $.getJSON('/nodes/' + nodeId + '/containers/start/' + val, function() {
+                $.getJSON('/' + apiVersion + '/nodes/' + nodeId + '/containers/start/' + val, function() {
                         //console.log('requested');
                 })
                 .done(function(data) {
@@ -187,7 +187,7 @@ $(document)
 
             $(stopBtn).click( function() {
                 $('#tab-stop').modal('show');
-                $.getJSON('/nodes/' + nodeId + '/containers/stop/' + val, function() {
+                $.getJSON('/' + apiVersion + '/nodes/' + nodeId + '/containers/stop/' + val, function() {
                         //console.log('requested');
                 })
                 .done(function(data) {
@@ -206,7 +206,7 @@ $(document)
 
             $(restartBtn).click( function() {
                 $('#tab-restart').modal('show');
-                $.getJSON('/nodes/' + nodeId + '/containers/restart/' + val, function() {
+                $.getJSON('/' + apiVersion + '/nodes/' + nodeId + '/containers/restart/' + val, function() {
                         //console.log('requested');
                 })
                 .done(function(data) {
@@ -246,7 +246,7 @@ $(document)
             */
             $(link).click( function() {
                     $('#tab-inspect').modal('show');
-                    $.getJSON('/nodes/' + nodeId  + '/containers/inspect/' + val, function() {
+                    $.getJSON('/' + apiVersion + '/nodes/' + nodeId  + '/containers/inspect/' + val, function() {
                             //console.log('requested');
                         })
                         .done(function(data) {
@@ -289,12 +289,13 @@ $(document)
         .tab('change tab', 'tab-list')
     ;
 
+    var apiVersion = '0.1';
     var nodeId = document.getElementById('hidden-nodeid').value;
 
     loadContainerList();
 
     function loadContainerList() {
-        $.getJSON('/nodes/' + nodeId  + '/containers/list')
+        $.getJSON('/' + apiVersion + '/nodes/' + nodeId  + '/containers/list')
             .done(function(data) {
                 if (data.length === 0) {
                     $('#tab-list-message').text('No containers.');

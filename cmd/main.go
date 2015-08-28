@@ -30,6 +30,7 @@ type Image struct {
 }
 
 const (
+	version    = "0.1"
 	rootPath   = "../www/"
 	dbFilename = "hoist.db"
 )
@@ -65,22 +66,22 @@ func main() {
 	router.HandlerFunc("GET", "/containers.html", containersHandler)
 	router.HandlerFunc("GET", "/nodes.html", nodesHandler)
 	router.HandlerFunc("GET", "/monitor.html", monitorHandler)
-	router.GET("/images/search/:term", nodeImageSearchGetHandler)
-	router.GET("/nodes/:nodeid/images/list", nodeImagesGetHandler)
-	router.GET("/nodes/:nodeid/images/inspect/:imageid", nodeImageInspectGetHandler)
-	router.GET("/nodes/:nodeid/images/history/:imageid", nodeImageHistoryGetHandler)
-	router.GET("/nodes/:nodeid/images/delete/:imageid", nodeImageDeleteHandler)
-	router.GET("/nodes/:nodeid/containers/list", nodeContainersGetHandler)
-	router.GET("/nodes/:nodeid/containers/inspect/:containerid", nodeContainerInspectGetHandler)
-	router.GET("/nodes/:nodeid/containers/top/:containerid", nodeContainerTopGetHandler)
-	router.GET("/nodes/:nodeid/containers/start/:containerid", nodeContainerStartGetHandler)
-	router.GET("/nodes/:nodeid/containers/stop/:containerid", nodeContainerStopGetHandler)
-	router.GET("/nodes/:nodeid/containers/restart/:containerid", nodeContainerRestartGetHandler)
-	router.GET("/nodes/:nodeid/containers/changes/:containerid", nodeContainerChangesGetHandler)
-	router.GET("/nodes/:nodeid/containers/delete/:containerid", nodeContainerDeleteGetHandler)
-	router.GET("/nodes", nodesListHandler)
-	router.GET("/monitor/:endpoint/:nodeid", monitorGetHandler)
-	router.POST("/nodes", nodesPostHandler)
+	router.GET("/"+version+"/images/search/:term", nodeImageSearchGetHandler)
+	router.GET("/"+version+"/nodes/:nodeid/images/list", nodeImagesGetHandler)
+	router.GET("/"+version+"/nodes/:nodeid/images/inspect/:imageid", nodeImageInspectGetHandler)
+	router.GET("/"+version+"/nodes/:nodeid/images/history/:imageid", nodeImageHistoryGetHandler)
+	router.GET("/"+version+"/nodes/:nodeid/images/delete/:imageid", nodeImageDeleteHandler)
+	router.GET("/"+version+"/nodes/:nodeid/containers/list", nodeContainersGetHandler)
+	router.GET("/"+version+"/nodes/:nodeid/containers/inspect/:containerid", nodeContainerInspectGetHandler)
+	router.GET("/"+version+"/nodes/:nodeid/containers/top/:containerid", nodeContainerTopGetHandler)
+	router.GET("/"+version+"/nodes/:nodeid/containers/start/:containerid", nodeContainerStartGetHandler)
+	router.GET("/"+version+"/nodes/:nodeid/containers/stop/:containerid", nodeContainerStopGetHandler)
+	router.GET("/"+version+"/nodes/:nodeid/containers/restart/:containerid", nodeContainerRestartGetHandler)
+	router.GET("/"+version+"/nodes/:nodeid/containers/changes/:containerid", nodeContainerChangesGetHandler)
+	router.GET("/"+version+"/nodes/:nodeid/containers/delete/:containerid", nodeContainerDeleteGetHandler)
+	router.GET("/"+version+"/nodes", nodesListHandler)
+	router.GET("/"+version+"/monitor/:endpoint/:nodeid", monitorGetHandler)
+	router.POST("/"+version+"/nodes", nodesPostHandler)
 	router.ServeFiles("/static/*filepath", http.Dir(rootPath))
 
 	fmt.Println("Starting server on port 8100...")
