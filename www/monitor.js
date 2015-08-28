@@ -54,7 +54,7 @@ $(document)
             if (nodeId !== '') {
                 console.log('Load info with nodeId: ' + nodeId);
             }
-            $.getJSON('/monitor/version/' + nodeId)
+            $.getJSON('/' + apiVersion + '/monitor/version/' + nodeId)
                 .done(function(data) {
                     document.getElementById('version-apiversion').innerHTML = data.ApiVersion;
                     document.getElementById('version-arch').innerHTML = data.Arch;
@@ -77,7 +77,7 @@ $(document)
             if (nodeId !== '') {
                 console.log('Load info with nodeId: ' + nodeId);
             }
-            $.getJSON('/monitor/ping/' + nodeId)
+            $.getJSON('/' + apiVersion + '/monitor/ping/' + nodeId)
                 .done(function(data) {
                     $('#tab-ping #results').text('Ping response: ' + JSON.stringify(data));
                 })
@@ -102,7 +102,7 @@ $(document)
             if (nodeId !== '') {
                 console.log('Load info with nodeId: ' + nodeId);
             }
-            jsonStream = new EventSource('monitor/events/' + nodeId);
+            jsonStream = new EventSource('/' + apiVersion + '/monitor/events/' + nodeId);
             
             jsonStream.addEventListener('message', function(e) {
                     console.log(e.data);
@@ -131,7 +131,7 @@ $(document)
         if (nodeId !== '') {
             console.log('Load info with nodeId: ' + nodeId);
         }
-        $.getJSON('/monitor/info/' + nodeId)
+        $.getJSON('/' + apiVersion + '/monitor/info/' + nodeId)
             .done(function(data) {
                 var driverStatus = '';
                 for (var i=0; i<data.DriverStatus.length; i++) {
@@ -177,6 +177,8 @@ $(document)
         })
         ;
     }
+
+    var apiVersion = '0.1';
 
     var nodeId = document.getElementById('hidden-nodeid').value;
 

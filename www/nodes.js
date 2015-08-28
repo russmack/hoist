@@ -32,6 +32,9 @@ $(document)
             var td = tr.insertCell();
             td.appendChild(document.createTextNode(data[i].Name));
 
+            // Add container for buttons.
+            var btns = $('<span />');
+
             // Add images button.
             var imagesBtn = buildButton('Images', 'cube icon');
             var link = document.createElement('a');
@@ -39,16 +42,16 @@ $(document)
             console.log('URI: ' + imagesUri);
             link.setAttribute('href', imagesUri)
             $(link).append(imagesBtn);
-            $(td).append($(link));
+            $(btns).append($(link));
 
             // Add containers button.
             var containersBtn = buildButton('Containers', 'cubes icon');
             var link = document.createElement('a');
             var containersUri = 'containers.html?nodeid=' + idLink;
-            console.log('URI: ' + containersUri);
             link.setAttribute('href', containersUri)
             $(link).append(containersBtn);
-            $(td).append($(link));
+            $(btns).append($(link));
+            $(td).append($(btns));
 
             var td = tr.insertCell();
             td.appendChild(document.createTextNode(data[i].Scheme));
@@ -75,18 +78,18 @@ $(document)
             //td.appendChild(document.createTextNode(data[i].RepoDigests));
         }
         $('#table-list > tbody > tr').each( function() {
-            /* 
-            var td = $('td:eq(0)', this)[0];
-            var val = td.textContent;
+            var td = $('td:eq(1)', this)[0];
+            var val = td.childNodes[0].textContent;
+            var btns = td.childNodes[1];
             var abbr = val.substring(0, 11);
             var link = document.createElement('a');
             var linkText = document.createTextNode(abbr);
-            link.setAttribute('href', '#')
+            link.setAttribute('href', 'monitor.html?nodeid=' + $('td:eq(0)', this)[0].textContent);
             link.className = '';
             link.appendChild(linkText);
             td.innerHTML = '';  // Clear cell first.
             td.appendChild(link);
-            */
+            td.appendChild(btns);
 
             /*
              * Add buttons.
