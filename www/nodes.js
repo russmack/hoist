@@ -189,10 +189,12 @@ $(document)
         .tab('change tab', 'tab-list')
     ;
 
+    var clusterId = document.getElementById('hidden-clusterid').value;
+
     loadNodeList();
 
     function loadNodeList() {
-        $.getJSON('/' + apiVersion  + '/nodes')
+        $.getJSON('/' + apiVersion  + '/cluster/' + clusterId  + '/nodes')
             .done(function(data) {
                 if (data.length === 0) {
                     $('#tab-list-message').text('No nodes.');
@@ -303,7 +305,7 @@ $(document)
                 'Description': desc
             };
             var postBody = JSON.stringify(node);
-            $.post('/' + apiVersion  + '/nodes', postBody, function() { console.log('success') } )
+            $.post('/' + apiVersion  + '/cluster/' + + '/nodes', postBody, function() { console.log('success') } )
                 .done(function(data) {
                     $('.ui.dimmer').dimmer('hide');
                     var statusCode = data.StatusCode;

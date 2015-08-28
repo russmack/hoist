@@ -79,7 +79,7 @@ func main() {
 	router.GET("/"+version+"/nodes/:nodeid/containers/restart/:containerid", nodeContainerRestartGetHandler)
 	router.GET("/"+version+"/nodes/:nodeid/containers/changes/:containerid", nodeContainerChangesGetHandler)
 	router.GET("/"+version+"/nodes/:nodeid/containers/delete/:containerid", nodeContainerDeleteGetHandler)
-	router.GET("/"+version+"/nodes", nodesListHandler)
+	router.GET("/"+version+"/cluster/:clusterid/nodes", nodesListHandler)
 	router.GET("/"+version+"/monitor/:endpoint/:nodeid", monitorGetHandler)
 	router.POST("/"+version+"/nodes", nodesPostHandler)
 	router.ServeFiles("/static/*filepath", http.Dir(rootPath))
@@ -133,10 +133,15 @@ func containersHandler(w http.ResponseWriter, r *http.Request) {
 	templates.ExecuteTemplate(w, "containers.html", data)
 }
 func nodesHandler(w http.ResponseWriter, r *http.Request) {
+	cid := r.URL.Query().Get("clusterid")
+	// TODO: this will need to be removed.
+	cid = "0"
 	data := struct {
 		Mainscript string
+		ClusterId  string
 	}{
 		"nodes",
+		cid,
 	}
 	templates.ExecuteTemplate(w, "nodes.html", data)
 }

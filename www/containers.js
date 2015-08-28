@@ -290,6 +290,8 @@ $(document)
     ;
 
     var apiVersion = '0.1';
+
+    var clusterId = document.getElementById('hidden-clusterid').value;
     var nodeId = document.getElementById('hidden-nodeid').value;
 
     loadContainerList();
