@@ -38,7 +38,7 @@ $(document)
             // Add images button.
             var imagesBtn = buildButton('Images', 'cube icon');
             var link = document.createElement('a');
-            var imagesUri = 'images.html?nodeid=' + idLink;
+            var imagesUri = 'images.html?clusterid=' + clusterId  + '&nodeid=' + idLink;
             console.log('URI: ' + imagesUri);
             link.setAttribute('href', imagesUri)
             $(link).append(imagesBtn);
@@ -47,7 +47,7 @@ $(document)
             // Add containers button.
             var containersBtn = buildButton('Containers', 'cubes icon');
             var link = document.createElement('a');
-            var containersUri = 'containers.html?nodeid=' + idLink;
+            var containersUri = 'containers.html?clusterid=' + clusterId + '&nodeid=' + idLink;
             link.setAttribute('href', containersUri)
             $(link).append(containersBtn);
             $(btns).append($(link));

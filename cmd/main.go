@@ -67,7 +67,7 @@ func main() {
 	router.HandlerFunc("GET", "/nodes.html", nodesHandler)
 	router.HandlerFunc("GET", "/monitor.html", monitorHandler)
 	router.GET("/"+version+"/images/search/:term", nodeImageSearchGetHandler)
-	router.GET("/"+version+"/nodes/:nodeid/images/list", nodeImagesGetHandler)
+	router.GET("/"+version+"/cluster/:clusterid/nodes/:nodeid/images/list", nodeImagesGetHandler)
 	router.GET("/"+version+"/nodes/:nodeid/images/inspect/:imageid", nodeImageInspectGetHandler)
 	router.GET("/"+version+"/nodes/:nodeid/images/history/:imageid", nodeImageHistoryGetHandler)
 	router.GET("/"+version+"/nodes/:nodeid/images/delete/:imageid", nodeImageDeleteHandler)
@@ -111,12 +111,15 @@ func indexHandler(w http.ResponseWriter, r *http.Request) {
 	templates.ExecuteTemplate(w, "index.html", data)
 }
 func imagesHandler(w http.ResponseWriter, r *http.Request) {
+	cid := r.URL.Query().Get("clusterid")
 	nid := r.URL.Query().Get("nodeid")
 	data := struct {
 		Mainscript string
+		ClusterId  string
 		NodeId     string
 	}{
 		"images",
+		cid,
 		nid,
 	}
 	templates.ExecuteTemplate(w, "images.html", data)

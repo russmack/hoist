@@ -182,7 +182,10 @@ $(document)
     ;
 
     function loadImageList() {
-        $.getJSON('/' + apiVersion + '/nodes/' + nodeId  + '/images/list')
+        $.getJSON('/' + apiVersion + 
+                '/cluster/' + clusterId  + 
+                '/nodes/' + nodeId  + 
+                '/images/list')
             .done(function(data) {
                 tableCreate($("#results")[0], data);
             })
