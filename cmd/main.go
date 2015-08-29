@@ -252,7 +252,7 @@ func getNodeById(nodeId string) (Node, error) {
 	fmt.Println("Getting node for id:", nodeId)
 	// Get ipaddress for nodeId from db
 	db := NewDatabase(dbFilename)
-	nodesDb := NewNodesDataStore(db)
+	nodesDb := NewClustersDataStore(db)
 	n, err := strconv.ParseInt(nodeId, 10, 64)
 	node, err := nodesDb.GetNodeById(n)
 	if err != nil {
@@ -439,7 +439,7 @@ func containerDelete(cfg Config, nodeId string, containerId string) string {
 
 func nodeList(cfg Config) string {
 	db := NewDatabase(dbFilename)
-	nodesDb := NewNodesDataStore(db)
+	nodesDb := NewClustersDataStore(db)
 	nodes := nodesDb.GetNodes()
 	b, err := json.Marshal(nodes)
 	if err != nil {
@@ -451,7 +451,7 @@ func nodeList(cfg Config) string {
 func nodeAdd(cfg Config, h *Node) string {
 	h.Created = time.Now().String()
 	db := NewDatabase(dbFilename)
-	nodesDb := NewNodesDataStore(db)
+	nodesDb := NewClustersDataStore(db)
 	node, err := nodesDb.AddNode(h)
 	if err != nil {
 		return fmt.Sprintf("Unable to add node.", err)
@@ -802,7 +802,7 @@ func getHttpStream(uri string, eChan chan Event) {
 	}(res, &client)
 }
 
-func (d *NodesDataStore) GetNodes() []Node {
+func (d *ClustersDataStore) GetNodes() []Node {
 	// TODO: maxrows should not be hardcoded.
 	return selectRows(d.Db.DbName, "Nodes", "50")
 }
@@ -875,7 +875,7 @@ type Node struct {
 type Database struct {
 	DbName string
 }
-type NodesDataStore struct {
+type ClustersDataStore struct {
 	Db *Database
 }
 
@@ -883,11 +883,22 @@ func NewDatabase(dbName string) *Database {
 	return &Database{DbName: dbName}
 }
 
-func NewNodesDataStore(db *Database) *NodesDataStore {
-	return &NodesDataStore{Db: db}
+func NewClustersDataStore(db *Database) *ClustersDataStore {
+	return &ClustersDataStore{Db: db}
 }
 
-func (d *NodesDataStore) CreateTable() {
+func (d *ClustersDataStore) CreateClustersTable() {
+	stmt := `
+			create table if not exists Clusters (
+				Name text, 
+				Description text, 
+				Created text
+			);
+			`
+	d.Db.CreateTable(stmt)
+}
+
+func (d *ClustersDataStore) CreateNodesTable() {
 	stmt := ` 
 			create table if not exists Nodes ( 
 		        Name text, 
@@ -903,8 +914,9 @@ func (d *NodesDataStore) CreateTable() {
 
 func (d *Database) Init() {
 	// Ensure tables exist.
-	nodesDb := NewNodesDataStore(d)
-	nodesDb.CreateTable()
+	nodesDb := NewClustersDataStore(d)
+	nodesDb.CreateClustersTable()
+	nodesDb.CreateNodesTable()
 }
 
 func (d *Database) CreateTable(stmt string) {
@@ -922,7 +934,7 @@ func (d *Database) CreateTable(stmt string) {
 	}
 }
 
-func (d *NodesDataStore) AddNode(n *Node) (Node, error) {
+func (d *ClustersDataStore) AddNode(n *Node) (Node, error) {
 	db, err := sql.Open("sqlite3", d.Db.DbName)
 	if err != nil {
 		fmt.Println("Error: unable to open database: " + err.Error())
@@ -980,7 +992,7 @@ func (d *NodesDataStore) AddNode(n *Node) (Node, error) {
 	return node, nil
 }
 
-func (d *NodesDataStore) GetNodeById(id int64) (Node, error) {
+func (d *ClustersDataStore) GetNodeById(id int64) (Node, error) {
 	db, err := sql.Open("sqlite3", d.Db.DbName)
 	if err != nil {
 		fmt.Println("Error: unable to open database: " + err.Error())
