@@ -19,6 +19,9 @@ Then visit: http://localhost:8100/
 
 ### Implemented
 
+#### Clusters
+- [X] Add
+
 #### Nodes
 - [X] Add
 
