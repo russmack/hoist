@@ -38,7 +38,7 @@ $(document)
             // Add images button.
             var imagesBtn = buildButton('Images', 'cube icon');
             var link = document.createElement('a');
-            var imagesUri = 'images.html?clusterid=' + clusterId  + '&nodeid=' + idLink;
+            var imagesUri = 'images.html?nodeid=' + idLink;
             console.log('URI: ' + imagesUri);
             link.setAttribute('href', imagesUri)
             $(link).append(imagesBtn);
@@ -47,7 +47,7 @@ $(document)
             // Add containers button.
             var containersBtn = buildButton('Containers', 'cubes icon');
             var link = document.createElement('a');
-            var containersUri = 'containers.html?clusterid=' + clusterId + '&nodeid=' + idLink;
+            var containersUri = 'containers.html?nodeid=' + idLink;
             link.setAttribute('href', containersUri)
             $(link).append(containersBtn);
             $(btns).append($(link));
@@ -194,7 +194,7 @@ $(document)
     loadNodeList();
 
     function loadNodeList() {
-        $.getJSON('/' + apiVersion  + '/cluster/' + clusterId  + '/nodes')
+        $.getJSON('/' + apiVersion  + '/clusters/' + clusterId  + '/nodes')
             .done(function(data) {
                 if (data.length === 0) {
                     $('#tab-list-message').text('No nodes.');
@@ -305,7 +305,7 @@ $(document)
                 'Description': desc
             };
             var postBody = JSON.stringify(node);
-            $.post('/' + apiVersion  + '/cluster/' + + '/nodes', postBody, function() { console.log('success') } )
+            $.post('/' + apiVersion  + '/clusters/' + + '/nodes', postBody, function() { console.log('success') } )
                 .done(function(data) {
                     $('.ui.dimmer').dimmer('hide');
                     var statusCode = data.StatusCode;

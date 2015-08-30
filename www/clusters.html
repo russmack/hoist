@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+    {{ template "header" . }}
+</head>
+<body id="home">
+
+  <div class="ui inverted masthead segment">
+    <div class="ui page grid">
+      <div class="column">
+        
+          {{ template "menubar" . }}
+
+      </div>
+    </div>
+  </div>
+
+  <div class="ui secondary pointing menu" id="menu-tabs">
+      <a class="item" data-tab="tab-list" id="menu-tabs-list">
+          List
+      </a>
+      <a class="item" data-tab="tab-add" id="menu-tabs-add">
+          Add
+      </a>
+      <!--
+      <a class="item" data-tab="menu-tabs-search" id="menu-tabs-search">
+          Search
+      </a>
+      -->
+      <!--
+      <div class="right menu">
+          <a class="ui item">
+              Logout
+          </a>
+      </div>
+      -->
+  </div>
+
+  <div class="ui tab segment active" data-tab="tab-list" id="tab-list">
+      <div id="tab-list-message"></div>
+      <div id="results">
+          <table class="ui very compact striped celled table" id="table-list">
+              <thead></thead>
+              <tbody id="table-list-body"></tbody>
+          </table>
+      </div>
+  </div>
+  <div class="ui tab segment" data-tab="tab-add" id="tab-add">
+      <div class="ui form segment success">
+          <div class="field">
+              <label>Name:</label>
+              <input type="text" id="tab-add-name-text" name="tab-add-name-text" placeholder="Name..." autofocus autocomplete="off">
+          </div>
+          <div class="field">
+              <label>Description:</label>
+              <input type="text" id="tab-add-description-text" name="tab-add-description-text" placeholder="Description..." autocomplete="off">
+          </div>
+          <button class="ui submit button" id="tab-add-button">Add</button>
+          <div class="ui page dimmer"><div class="ui text loader">Adding...</div></div>
+      </div>
+  </div>
+  <div class="ui basic modal small" id="tab-add-added">
+      <div class="header">
+         Added Cluster
+      </div>
+      <div class="image content">
+          <div class="image">
+              <i class="cube outline icon"></i>
+          </div>
+          <div class="description">
+              <p>The cluster has been created.</p>
+          </div>
+      </div>
+      <div id="results" class="content"></div>
+      <div class="actions">
+          <div class="one fluid ui inverted buttons">
+              <div class="ui green basic inverted button">
+                  <i class="checkmark icon"></i>
+                  OK
+              </div>
+          </div>
+      </div>
+  </div>
+  <!--
+  <div class="ui basic modal" data-tab="tab-inspect" id="tab-inspect">
+      <div id="results"></div>
+  </div>
+  -->
+  <!--
+  <div class="ui basic modal" data-tab="tab-history" id="tab-history">
+      <div class="header">
+          Image History
+      </div>
+      <div id="tab-history-message"></div>
+      <div id="results" class="content">
+        <table class="ui very compact striped inverted table" id="table-history">
+            <thead></thead>
+            <tbody id="table-history-body"></tbody>
+        </table>
+      </div>
+  </div>
+  -->
+  <!--
+  <div class="ui tab segment" data-tab="tab-search" id="tab-search">
+      <div class="ui form segment success">
+          <div class="field">
+              <label>Enter image name to search for:</label>
+              <input type="text" id="tab-search-text" name="tab-search-text" placeholder="Search..." autofocus autocomplete="off">
+          </div>
+          <button class="ui submit button" id="tab-search-button">Search</button>
+          <div class="ui page dimmer"><div class="ui text loader">Searching...</div></div>
+      </div>
+  </div>
+  -->
+  <!--
+  <div class="ui basic long modal" data-tab="tab-search-results" id="tab-search-results">
+      <div class="header">Search results</div>
+      <div class="ui basic modal" id="tab-search-results-modal-message">
+        <div id="tab-search-results-message"></div>
+      </div>
+      <div id="results">
+        <table class="ui very compact striped inverted table" id="table-search-results">
+            <thead></thead>
+            <tbody id="table-search-results-body"></tbody>
+        </table>
+      </div>
+  </div>
+  -->
+  <!--
+  <div class="ui basic modal small" data-tab="tab-delete" id="tab-delete">
+      <i class="close icon"></i>
+      <div class="header">
+          Delete Image
+      </div>
+      <div class="image content">
+          <div class="image">
+              <i class="trash outline icon"></i>
+          </div>
+          <div class="description">
+              <p>The image has been deleted.</p>
+          </div>
+      </div>
+      <div id="results" class="content"></div>
+      <div class="actions">
+          <div class="one fluid ui inverted buttons">
+              <div class="ui green basic inverted button">
+                  <i class="checkmark icon"></i>
+                  OK
+              </div>
+          </div>
+      </div>
+  </div>
+  -->
+
+<!--
+  <div class="ui grid">
+      <div class="four wide column">
+          <div class="ui vertical fluid tabular menu">
+              <a class="active item">
+                  List
+              </a>
+              <a class="item">
+                  Inspect
+              </a>
+              <a class="item">
+                  Search
+              </a>
+              <a class="item">
+                  Remove
+              </a>
+          </div>
+      </div>
+      <div class="twelve wide stretched column">
+          <div class="ui segment">
+              This is an stretched grid column. This segment will always match the tab height
+          </div>
+      </div>
+  </div>
+  -->
+
+  {{ template "footer" . }}
+
+</body>
+
+</html>

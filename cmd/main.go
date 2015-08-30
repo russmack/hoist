@@ -38,9 +38,10 @@ const (
 var (
 	templates = template.Must(template.ParseFiles(
 		path.Join(rootPath, "index.html"),
+		path.Join(rootPath, "clusters.html"),
+		path.Join(rootPath, "nodes.html"),
 		path.Join(rootPath, "images.html"),
 		path.Join(rootPath, "containers.html"),
-		path.Join(rootPath, "nodes.html"),
 		path.Join(rootPath, "monitor.html"),
 		path.Join(rootPath, "header.html"),
 		path.Join(rootPath, "footer.html"),
@@ -62,12 +63,13 @@ func main() {
 	router.HandlerFunc("GET", "/favicon.ico", faviconHandler)
 	router.HandlerFunc("GET", "/", indexHandler)
 	router.HandlerFunc("GET", "/index.html", indexHandler)
+	router.HandlerFunc("GET", "/clusters.html", clustersHandler)
+	router.HandlerFunc("GET", "/nodes.html", nodesHandler)
 	router.HandlerFunc("GET", "/images.html", imagesHandler)
 	router.HandlerFunc("GET", "/containers.html", containersHandler)
-	router.HandlerFunc("GET", "/nodes.html", nodesHandler)
 	router.HandlerFunc("GET", "/monitor.html", monitorHandler)
 	router.GET("/"+version+"/images/search/:term", nodeImageSearchGetHandler)
-	router.GET("/"+version+"/cluster/:clusterid/nodes/:nodeid/images/list", nodeImagesGetHandler)
+	router.GET("/"+version+"/clusters/:clusterid/nodes/:nodeid/images/list", nodeImagesGetHandler)
 	router.GET("/"+version+"/nodes/:nodeid/images/inspect/:imageid", nodeImageInspectGetHandler)
 	router.GET("/"+version+"/nodes/:nodeid/images/history/:imageid", nodeImageHistoryGetHandler)
 	router.GET("/"+version+"/nodes/:nodeid/images/delete/:imageid", nodeImageDeleteHandler)
@@ -79,8 +81,10 @@ func main() {
 	router.GET("/"+version+"/nodes/:nodeid/containers/restart/:containerid", nodeContainerRestartGetHandler)
 	router.GET("/"+version+"/nodes/:nodeid/containers/changes/:containerid", nodeContainerChangesGetHandler)
 	router.GET("/"+version+"/nodes/:nodeid/containers/delete/:containerid", nodeContainerDeleteGetHandler)
-	router.GET("/"+version+"/cluster/:clusterid/nodes", nodesListHandler)
+	router.GET("/"+version+"/clusters", clustersListHandler)
+	router.GET("/"+version+"/clusters/:clusterid/nodes", nodesListHandler)
 	router.GET("/"+version+"/monitor/:endpoint/:nodeid", monitorGetHandler)
+	router.POST("/"+version+"/clusters", clustersPostHandler)
 	router.POST("/"+version+"/nodes", nodesPostHandler)
 	router.ServeFiles("/static/*filepath", http.Dir(rootPath))
 
@@ -135,10 +139,16 @@ func containersHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	templates.ExecuteTemplate(w, "containers.html", data)
 }
+func clustersHandler(w http.ResponseWriter, r *http.Request) {
+	data := struct {
+		Mainscript string
+	}{
+		"clusters",
+	}
+	templates.ExecuteTemplate(w, "clusters.html", data)
+}
 func nodesHandler(w http.ResponseWriter, r *http.Request) {
 	cid := r.URL.Query().Get("clusterid")
-	// TODO: this will need to be removed.
-	cid = "0"
 	data := struct {
 		Mainscript string
 		ClusterId  string
@@ -194,7 +204,22 @@ func nodeContainerDeleteGetHandler(w http.ResponseWriter, r *http.Request, ps ht
 	fmt.Fprintf(w, containerDelete(cfg, ps.ByName("nodeid"), ps.ByName("containerid")))
 }
 func nodesListHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	fmt.Fprintf(w, nodeList(cfg))
+	fmt.Fprintf(w, nodeList(cfg, ps.ByName("clusterid")))
+}
+func clustersListHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	fmt.Fprintf(w, clusterList(cfg))
+}
+
+func clustersPostHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	var cluster Cluster
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&cluster)
+	if err != nil {
+		fmt.Println("Unable to decode json cluster post.", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	fmt.Fprintf(w, clusterAdd(cfg, &cluster))
 }
 func nodesPostHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var node Node
@@ -437,16 +462,41 @@ func containerDelete(cfg Config, nodeId string, containerId string) string {
 	return deleteHttp(uri)
 }
 
-func nodeList(cfg Config) string {
+func clusterList(cfg Config) string {
+	db := NewDatabase(dbFilename)
+	clustersDb := NewClustersDataStore(db)
+	clusters := clustersDb.GetClusters()
+	b, err := json.Marshal(clusters)
+	if err != nil {
+		fmt.Println(err)
+		return "err occurred"
+	}
+	return string(b)
+}
+func nodeList(cfg Config, clusterId string) string {
 	db := NewDatabase(dbFilename)
 	nodesDb := NewClustersDataStore(db)
-	nodes := nodesDb.GetNodes()
+	nodes := nodesDb.GetNodes(clusterId)
 	b, err := json.Marshal(nodes)
 	if err != nil {
 		fmt.Println(err)
 		return "err occurred"
 	}
 	return string(b)
+}
+func clusterAdd(cfg Config, h *Cluster) string {
+	h.Created = time.Now().String()
+	db := NewDatabase(dbFilename)
+	clustersDb := NewClustersDataStore(db)
+	cluster, err := clustersDb.AddCluster(h)
+	if err != nil {
+		return fmt.Sprintf("Unable to add cluster.", err)
+	}
+	json, err := json.Marshal(cluster)
+	if err != nil {
+		return fmt.Sprintf("Unable to marshal new cluster json.", err)
+	}
+	return string(json)
 }
 func nodeAdd(cfg Config, h *Node) string {
 	h.Created = time.Now().String()
@@ -802,12 +852,64 @@ func getHttpStream(uri string, eChan chan Event) {
 	}(res, &client)
 }
 
-func (d *ClustersDataStore) GetNodes() []Node {
+func (d *ClustersDataStore) GetClusters() []Cluster {
 	// TODO: maxrows should not be hardcoded.
-	return selectRows(d.Db.DbName, "Nodes", "50")
+	return selectClusterRows(d.Db.DbName, "Clusters", "50")
+}
+func (d *ClustersDataStore) GetNodes(clusterId string) []Node {
+	// TODO: maxrows should not be hardcoded.
+	return selectNodeRows(d.Db.DbName, "Nodes", "50", clusterId)
 }
 
-func selectRows(dbName string, tableName string, maxRows string) []Node {
+func selectClusterRows(dbName string, tableName string, maxRows string) []Cluster {
+	db, err := sql.Open("sqlite3", dbName)
+	if err != nil {
+		fmt.Println("Error: unable to open database: " + err.Error())
+		os.Exit(1)
+	}
+	defer db.Close()
+
+	stmt, err := db.Prepare(
+		"select rowid, name, description, created " +
+			" from " + tableName + " limit " + maxRows)
+	//stmt, err := db.Prepare("select * from ? limit ?")
+	if err != nil {
+		fmt.Println("Error: unable to prepare query: " + err.Error())
+		os.Exit(1)
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query()
+	if err != nil {
+		fmt.Println("Error: unable to execute query: " + err.Error())
+		os.Exit(1)
+	}
+	defer rows.Close()
+	clusters := []Cluster{}
+	for rows.Next() {
+		var rowid int
+		var name string
+		var description string
+		var created string
+		err := rows.Scan(&rowid, &name, &description, &created)
+		if err != nil {
+			fmt.Println("ERR: ", err)
+		}
+		cluster := &Cluster{
+			Id:          rowid,
+			Name:        name,
+			Description: description,
+			Created:     created,
+		}
+		clusters = append(clusters, *cluster)
+	}
+	err = rows.Err()
+	if err != nil {
+		fmt.Println("Err from rows: ", err)
+	}
+	return clusters
+}
+func selectNodeRows(dbName string, tableName string, maxRows string, clusterId string) []Node {
 	db, err := sql.Open("sqlite3", dbName)
 	if err != nil {
 		fmt.Println("Error: unable to open database: " + err.Error())
@@ -817,7 +919,7 @@ func selectRows(dbName string, tableName string, maxRows string) []Node {
 
 	stmt, err := db.Prepare(
 		"select rowid, name, scheme, address, port, description, created " +
-			" from " + tableName + " limit " + maxRows)
+			" from " + tableName + " where ClusterId = " + clusterId + " limit " + maxRows)
 	//stmt, err := db.Prepare("select * from ? limit ?")
 	if err != nil {
 		fmt.Println("Error: unable to prepare query: " + err.Error())
@@ -862,6 +964,13 @@ func selectRows(dbName string, tableName string, maxRows string) []Node {
 	return nodes
 }
 
+type Cluster struct {
+	Id          int
+	Name        string
+	Description string
+	Created     string
+}
+
 type Node struct {
 	Id          int
 	Name        string
@@ -870,6 +979,7 @@ type Node struct {
 	Port        int
 	Description string
 	Created     string
+	ClusterId   int
 }
 
 type Database struct {
@@ -906,7 +1016,8 @@ func (d *ClustersDataStore) CreateNodesTable() {
 		        Address text not null, 
 				Port integer,
 		        Description text, 
-		        Created text 
+		        Created text, 
+				ClusterId integer
 		    );
 			`
 	d.Db.CreateTable(stmt)
@@ -934,6 +1045,63 @@ func (d *Database) CreateTable(stmt string) {
 	}
 }
 
+func (d *ClustersDataStore) AddCluster(n *Cluster) (Cluster, error) {
+	db, err := sql.Open("sqlite3", d.Db.DbName)
+	if err != nil {
+		fmt.Println("Error: unable to open database: " + err.Error())
+		return Cluster{}, err
+	}
+	defer db.Close()
+
+	tx, err := db.Begin()
+	if err != nil {
+		fmt.Println("Error: unable to being transaction: " + err.Error())
+		return Cluster{}, err
+	}
+
+	stmt, err := tx.Prepare("insert into Clusters(Name, Description, Created) values (?, ?, ?)")
+	if err != nil {
+		fmt.Println("Error: unable to prepare transaction statement: " + err.Error())
+		return Cluster{}, err
+	}
+	defer stmt.Close()
+
+	r, err := stmt.Exec(n.Name, n.Description, n.Created)
+	if err != nil {
+		fmt.Println("Error: unable to insert database record: " + err.Error())
+		return Cluster{}, err
+	}
+	tx.Commit()
+	lastInsertedId, err := r.LastInsertId()
+	if err != nil {
+		return Cluster{}, err
+	}
+	cluster, err := d.GetClusterById(lastInsertedId)
+	if err != nil {
+		fmt.Println("Unable to GetCluster.", err)
+		return Cluster{}, err
+	}
+
+	/*
+		for rows.Next() {
+			var id int
+			var name string
+			var address string
+			var description string
+			var created string
+			rows.Scan(&id, &name, &address, &description, &created)
+			node := &Node{
+				Id:          id,
+				Name:        name,
+				Address:     address,
+				Description: description,
+				Created:     created,
+			}
+			nodes = append(nodes, *node)
+		}
+	*/
+	return cluster, nil
+}
 func (d *ClustersDataStore) AddNode(n *Node) (Node, error) {
 	db, err := sql.Open("sqlite3", d.Db.DbName)
 	if err != nil {
@@ -992,6 +1160,28 @@ func (d *ClustersDataStore) AddNode(n *Node) (Node, error) {
 	return node, nil
 }
 
+func (d *ClustersDataStore) GetClusterById(id int64) (Cluster, error) {
+	db, err := sql.Open("sqlite3", d.Db.DbName)
+	if err != nil {
+		fmt.Println("Error: unable to open database: " + err.Error())
+		return Cluster{}, err
+	}
+	defer db.Close()
+
+	stmt := "select rowid, Name, Description, Created from Clusters where rowid = ?"
+	row := db.QueryRow(stmt, id)
+	var cluster Cluster
+	row.Scan(&cluster.Id, &cluster.Name, &cluster.Description, &cluster.Created)
+	switch {
+	case err == sql.ErrNoRows:
+		log.Println("No cluster with specified id.")
+	case err != nil:
+		log.Println("Unable to Get Cluster.", err)
+	default:
+		//
+	}
+	return cluster, err
+}
 func (d *ClustersDataStore) GetNodeById(id int64) (Node, error) {
 	db, err := sql.Open("sqlite3", d.Db.DbName)
 	if err != nil {
