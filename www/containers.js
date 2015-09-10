@@ -81,6 +81,8 @@ $(document)
             var restartBtn = buildButton('Restart', 'refresh icon');
             $(td).append($(restartBtn));
 
+            var scaleOutBtn = buildButton('Scale Out', 'resize horizontal icon');
+            $(td).append($(scaleOutBtn));
 
             /*
              * Bind handlers to buttons.
@@ -223,6 +225,27 @@ $(document)
                 )
             });
 
+
+            $(scaleOutBtn).click( function() {
+                $('#tab-scaleout').modal('show');
+                /* Commented until implemented.
+                $.getJSON('/' + apiVersion + '/nodes/' + nodeId + '/containers/restart/' + val, function() {
+                        //console.log('requested');
+                })
+                .done(function(data) {
+                    var statusCode = data.StatusCode;
+                    $('#tab-scaleout #results').text('Response status code: ' + statusCode);
+                    $('#table-list-body').empty();
+                    loadContainerList();
+                })
+                .fail(
+                    function( jqxhr, textStatus, error ) {
+                        var err = textStatus + ", " + error;
+                        console.log( "Request Failed: " + err );
+                    }
+                )
+                */
+            });
 
             var historyBtn = buildButton('Logs', 'history icon');
             // Disabled containers logs button, until stream response understood.
