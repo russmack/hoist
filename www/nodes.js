@@ -81,10 +81,11 @@ $(document)
             var td = $('td:eq(1)', this)[0];
             var val = td.childNodes[0].textContent;
             var btns = td.childNodes[1];
-            var abbr = val.substring(0, 11);
+            var abbr = val.substring(0, 11) + '...';
             var link = document.createElement('a');
             var linkText = document.createTextNode(abbr);
             link.setAttribute('href', 'monitor.html?nodeid=' + $('td:eq(0)', this)[0].textContent);
+            link.setAttribute('title', val);
             link.className = '';
             link.appendChild(linkText);
             td.innerHTML = '';  // Clear cell first.
