@@ -6,16 +6,18 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/julienschmidt/httprouter"
-	_ "github.com/mattn/go-sqlite3"
-	lib "github.com/russmack/hoist/lib"
 	"html/template"
 	"log"
 	"net/http"
 	"os"
 	"path"
 	"strconv"
+	"strings"
 	"time"
+
+	"github.com/julienschmidt/httprouter"
+	_ "github.com/mattn/go-sqlite3"
+	lib "github.com/russmack/hoist/lib"
 )
 
 type Image struct {
@@ -27,6 +29,17 @@ type Image struct {
 	RepoTags    []string `json:"RepoTags"`
 	Size        int      `json:"Size"`
 	VirtualSize int      `json:"VirtualSize"`
+}
+
+type Container struct {
+	Command string
+	Created int
+	Id      string
+	Image   string
+	Labels  interface{}
+	Names   []string
+	Ports   []interface{}
+	Status  string
 }
 
 const (
@@ -81,6 +94,7 @@ func main() {
 	router.GET("/"+version+"/nodes/:nodeid/containers/restart/:containerid", nodeContainerRestartGetHandler)
 	router.GET("/"+version+"/nodes/:nodeid/containers/changes/:containerid", nodeContainerChangesGetHandler)
 	router.GET("/"+version+"/nodes/:nodeid/containers/delete/:containerid", nodeContainerDeleteGetHandler)
+	router.GET("/"+version+"/nodes/:nodeid/containers/scaleout/:containerid", nodeContainerScaleOutGetHandler)
 	router.GET("/"+version+"/clusters", clustersListHandler)
 	router.GET("/"+version+"/clusters/:clusterid/nodes", nodesListHandler)
 	router.GET("/"+version+"/monitor/:endpoint/:nodeid", monitorGetHandler)
@@ -202,6 +216,9 @@ func nodeContainerChangesGetHandler(w http.ResponseWriter, r *http.Request, ps h
 }
 func nodeContainerDeleteGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	fmt.Fprintf(w, containerDelete(cfg, ps.ByName("nodeid"), ps.ByName("containerid")))
+}
+func nodeContainerScaleOutGetHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	fmt.Fprintf(w, containerScaleOut(cfg, ps.ByName("nodeid"), ps.ByName("containerid")))
 }
 func nodesListHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	fmt.Fprintf(w, nodeList(cfg, ps.ByName("clusterid")))
@@ -423,7 +440,7 @@ func containerStart(cfg Config, nodeId string, containerId string) string {
 	}
 	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, node.Port)
 	uri := fmt.Sprintf("%s/containers/%s/start", addr, containerId)
-	return postHttp(uri, "")
+	return postHttp(uri, "", nil)
 }
 
 func containerStop(cfg Config, nodeId string, containerId string) string {
@@ -435,7 +452,7 @@ func containerStop(cfg Config, nodeId string, containerId string) string {
 	}
 	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, node.Port)
 	uri := fmt.Sprintf("%s/containers/%s/stop", addr, containerId)
-	return postHttp(uri, "")
+	return postHttp(uri, "", nil)
 }
 
 func containerRestart(cfg Config, nodeId string, containerId string) string {
@@ -447,7 +464,7 @@ func containerRestart(cfg Config, nodeId string, containerId string) string {
 	}
 	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, node.Port)
 	uri := fmt.Sprintf("%s/containers/%s/restart", addr, containerId)
-	return postHttp(uri, "")
+	return postHttp(uri, "", nil)
 }
 
 func containerDelete(cfg Config, nodeId string, containerId string) string {
@@ -460,6 +477,115 @@ func containerDelete(cfg Config, nodeId string, containerId string) string {
 	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, node.Port)
 	uri := fmt.Sprintf("%s/containers/%s", addr, containerId)
 	return deleteHttp(uri)
+}
+
+type ContainerInspection struct {
+	Config struct {
+		Image string   `json:"Image"`
+		Cmd   []string `json:"Cmd"`
+	} `json:"Config"`
+	Name string   `json:"Name"`
+	Args []string `json:"Args"`
+}
+
+func makeContainerName(cfg Config, nodeId, containerName string, cList []Container) string {
+	// Give new container a name.
+	// UUID is bulky, so use container name with incremented numeric suffix.
+	// Get a list of all containers and ensure the new name is unique.
+	const suffixMaxLen = 3
+
+	cloneeHasNumSuffix := true
+	nameSuffix := containerName[len(containerName)-suffixMaxLen:]
+	if num, err := strconv.Atoi(nameSuffix); err != nil || num%1 != 0 {
+		cloneeHasNumSuffix = false
+	}
+
+	// [{"Command":"/hello","Created":1445715734,"Id":"69cb7ebdbe63b896e5703b49981eddc3bf5f49335bc4a90dcab8090ec57dbe9e",
+	//   "Image":"hello-world:latest","Labels":{},"Names":["/pensive_pare001"],"Ports":[],"Status":""}
+	highestCloneSuffix := 1
+	for _, j := range cList { // List of existing containers
+		for _, n := range j.Names { // Each container can have multiple names
+			if strings.HasPrefix(n, containerName) {
+				// This container name is relevant - figure out the numeric suffix.
+				nameSuffix := n[len(n)-suffixMaxLen:]
+				if num, err := strconv.Atoi(nameSuffix); err != nil && num%1 == 0 {
+					continue
+				} else {
+					if num >= highestCloneSuffix {
+						highestCloneSuffix = num + 1
+					}
+				}
+			}
+		}
+	}
+
+	containerName = strings.Replace(containerName, "/", "", -1)
+	suffix := padString(highestCloneSuffix, suffixMaxLen)
+	newName := ""
+	if !cloneeHasNumSuffix {
+		newName = containerName + "." + suffix
+	} else {
+		newName = containerName[:len(containerName)-suffixMaxLen-1] + "." + suffix
+	}
+
+	return newName
+}
+
+func padString(n int, nLen int) string {
+	s := strconv.Itoa(n)
+	sLen := len(s)
+	for i := 0; i < nLen-sLen; i++ {
+		s = "0" + s
+	}
+	return s
+}
+
+func containerScaleOut(cfg Config, nodeId string, containerId string) string {
+	node, err := getNodeById(nodeId)
+	if err != nil {
+		body := fmt.Sprintf("{ \"success\": false, \"error\": \"Error getting node. %s\" }", err)
+		log.Println(body)
+		return body
+	}
+	// Inspect container to get image.
+	// Inspect container to get container name.
+	var cInfo ContainerInspection
+	info := containerInspect(cfg, nodeId, containerId)
+	err = json.Unmarshal([]byte(info), &cInfo)
+	if err != nil {
+		body := fmt.Sprintf("{ \"success\": false, \"error\": \"Error parsing container inspection. %s\" }", err)
+		log.Println(body)
+		return body
+	}
+
+	log.Printf("CINFO: %+v\n\n", cInfo)
+	cList, err := currentContainers(cfg, nodeId)
+	if err != nil {
+		body := fmt.Sprintf("{ \"success\": false, \"error\": \"Error parsing container inspection. %s\" }", err)
+		log.Println(body)
+		return body
+	}
+	newName := makeContainerName(cfg, nodeId, cInfo.Name, cList)
+
+	// Create new container with incremented name.
+	addr := fmt.Sprintf("%s://%s:%d", node.Scheme, node.Address, node.Port)
+	uri := fmt.Sprintf("%s/containers/create?name=%s", addr, newName)
+	body := `{"Image": "` + cInfo.Config.Image + `"}`
+	log.Println("Sending: ", uri)
+	log.Println("with body: ", body)
+
+	//w.Header().Set("Content-Type", "application/json")
+	headers := make(map[string]string)
+	headers["Content-Type"] = "application/json"
+
+	return postHttp(uri, body, headers)
+}
+
+func currentContainers(cfg Config, nodeId string) ([]Container, error) {
+	cListJson := containerList(cfg, nodeId)
+	var cList []Container
+	err := json.Unmarshal([]byte(cListJson), &cList)
+	return cList, err
 }
 
 func clusterList(cfg Config) string {
@@ -677,13 +803,13 @@ func getHttpString(uri string) string {
 			body = string(b)
 		}
 	}
-	fmt.Println("Body:", body)
+	//fmt.Println("Body:", body)
 	return body
 }
 
-func postHttp(uri string, data string) string { // TODO: change 'data' type.
+func postHttp(uri string, data string, headers map[string]string) string { // TODO: change 'data' type.
 
-	fmt.Println("Dialing...   for delete")
+	fmt.Println("Dialing...   for post")
 
 	tlsConfig, err := lib.GetTLSConfig(nil, cfg.SslCert, cfg.SslKey)
 	if err != nil {
@@ -705,6 +831,11 @@ func postHttp(uri string, data string) string { // TODO: change 'data' type.
 	if err != nil {
 		log.Fatal("Error creating new POST request.")
 	}
+	// Add any headers.
+	for k, v := range headers {
+		req.Header.Add(k, v)
+	}
+	fmt.Printf("REQUEST : %+v\n", req)
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatal("Error getting http resource.", err)
@@ -714,7 +845,7 @@ func postHttp(uri string, data string) string { // TODO: change 'data' type.
 	}
 
 	body := ""
-	if status == 200 {
+	if status >= 200 && status < 300 {
 		bodyBuf, err := lib.ReadHttpResponseBody(resp)
 		if err != nil {
 			fmt.Println("err reading body:", err)
@@ -725,6 +856,8 @@ func postHttp(uri string, data string) string { // TODO: change 'data' type.
 	} else {
 		b, err := json.Marshal(resp)
 		if err != nil {
+			fmt.Println("Error marshalling to json.")
+			fmt.Printf("Object to marshal : %+v\n", resp)
 			body = "{ success: false, error: '" + err.Error() + "' }"
 		} else {
 			body = string(b)
