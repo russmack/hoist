@@ -787,7 +787,7 @@ func getHttpString(uri string) string {
 		status = resp.StatusCode
 	}
 	body := ""
-	if status == 200 {
+	if status >= 200 && status < 300 {
 		bodyBuf, err := lib.ReadHttpResponseBody(resp)
 		if err != nil {
 			fmt.Println("err reading body:", err)
@@ -803,7 +803,6 @@ func getHttpString(uri string) string {
 			body = string(b)
 		}
 	}
-	//fmt.Println("Body:", body)
 	return body
 }
 
@@ -863,7 +862,6 @@ func postHttp(uri string, data string, headers map[string]string) string { // TO
 			body = string(b)
 		}
 	}
-	fmt.Println("Body:", body)
 	return body
 }
 
@@ -899,7 +897,7 @@ func deleteHttp(uri string) string {
 	}
 
 	body := ""
-	if status == 200 {
+	if status >= 200 && status < 300 {
 		bodyBuf, err := lib.ReadHttpResponseBody(resp)
 		if err != nil {
 			fmt.Println("err reading body:", err)
@@ -907,6 +905,9 @@ func deleteHttp(uri string) string {
 			bodyBuf = []byte(bodyStr)
 		}
 		body = string(bodyBuf)
+		if strings.TrimSpace(body) == "" {
+			body = "{\"StatusCode\": \"OK\"}"
+		}
 	} else {
 		b, err := json.Marshal(resp)
 		if err != nil {
@@ -915,7 +916,6 @@ func deleteHttp(uri string) string {
 			body = string(b)
 		}
 	}
-	fmt.Println("Body:", body)
 	return body
 }
 
