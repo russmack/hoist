@@ -23,6 +23,17 @@ $(document)
             var idLink = data[i].Id;
             td.innerHTML = idLink;
             var td = tr.insertCell();
+            var namesText = '';
+            if (data[i].Names !== 'undefined' && data[i].Names !== null) {
+                for (var j=0; j<data[i].Names.length; j++)
+                {
+                    if (j>1) { namesText += ', '; }
+                    namesText += data[i].Names[j].replace('/', '');
+                }
+            }
+            td.appendChild(document.createTextNode(namesText));
+
+            var td = tr.insertCell();
             td.appendChild(document.createTextNode(data[i].Image));
             var td = tr.insertCell();
             td.appendChild(document.createTextNode(data[i].Command));
@@ -155,7 +166,7 @@ $(document)
                         //console.log('requested');
                 })
                 .done(function(data) {
-                    var statusCode = data.StatusCode;
+                    var statusCode = 'OK';
                     $('#tab-delete #results').text('Response status code: ' + statusCode);
                     $('#table-list-body').empty();
                     loadContainerList();
@@ -233,7 +244,7 @@ $(document)
                         //console.log('requested');
                 })
                 .done(function(data) {
-                    var statusCode = data.StatusCode;
+                    var statusCode = 'OK';
                     $('#tab-scaleout #results').text('Response status code: ' + statusCode);
                     $('#table-list-body').empty();
                     loadContainerList();
@@ -330,6 +341,7 @@ $(document)
                 tbl.create(t);
                 tbl.setHeader([
                     'Id', 
+                    'Names',
                     'Image', 
                     'Command', 
                     'Created', 
