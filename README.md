@@ -33,6 +33,7 @@ Then visit: http://localhost:8100/
 - [X] Search
 
 #### Containers
+- [X] Scale Out
 - [X] List
 - [X] Inspect
 - [X] Top
