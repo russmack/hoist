@@ -51,7 +51,7 @@ $(document)
             var abbr = val.substring(0, 11);
             var link = document.createElement('a');
             var linkText = document.createTextNode(abbr);
-            link.setAttribute('href', '#')
+            link.setAttribute('href', '#');
             link.className = '';
             link.appendChild(linkText);
             td.innerHTML = '';  // Clear cell first.
@@ -98,7 +98,7 @@ $(document)
                 .fail(function( jqxhr, textStatus, error ) {
                         var err = textStatus + ", " + error;
                         console.log( "Request Failed: " + err );
-                })
+                });
             });
 
             var statsBtn = buildButton('Statistics', 'area chart icon');
@@ -146,12 +146,12 @@ $(document)
                         var err = textStatus + ", " + error;
                         console.log( "Request Failed: " + err );
                     }
-                    )
+                    );
             });
 
             $(deleteBtn).click( function() {
                 $('#tab-delete').modal('show');
-                $.getJSON(''/' + apiVersion + /nodes/' + nodeId + '/containers/delete/' + val, function() {
+                $.getJSON('/' + apiVersion + '/nodes/' + nodeId + '/containers/delete/' + val, function() {
                         //console.log('requested');
                 })
                 .done(function(data) {
@@ -165,7 +165,7 @@ $(document)
                         var err = textStatus + ", " + error;
                         console.log( "Request Failed: " + err );
                     }
-                )
+                );
             });
 
             $(startBtn).click( function() {
@@ -184,7 +184,7 @@ $(document)
                         var err = textStatus + ", " + error;
                         console.log( "Request Failed: " + err );
                     }
-                )
+                );
             });
 
             $(stopBtn).click( function() {
@@ -203,7 +203,7 @@ $(document)
                         var err = textStatus + ", " + error;
                         console.log( "Request Failed: " + err );
                     }
-                )
+                );
             });
 
             $(restartBtn).click( function() {
@@ -222,14 +222,14 @@ $(document)
                         var err = textStatus + ", " + error;
                         console.log( "Request Failed: " + err );
                     }
-                )
+                );
             });
 
 
             $(scaleOutBtn).click( function() {
                 $('#tab-scaleout').modal('show');
-                /* Commented until implemented.
-                $.getJSON('/' + apiVersion + '/nodes/' + nodeId + '/containers/restart/' + val, function() {
+                // Commented until implemented.
+                $.getJSON('/' + apiVersion + '/nodes/' + nodeId + '/containers/scaleout/' + val, function() {
                         //console.log('requested');
                 })
                 .done(function(data) {
@@ -243,8 +243,7 @@ $(document)
                         var err = textStatus + ", " + error;
                         console.log( "Request Failed: " + err );
                     }
-                )
-                */
+                );
             });
 
             var historyBtn = buildButton('Logs', 'history icon');
